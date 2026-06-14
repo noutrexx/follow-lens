@@ -1,0 +1,22 @@
+{
+  "_comment": "Copy this file to config.json and fill it in. config.json is git-ignored and stays on your machine.",
+
+  "username": "your_instagram_username",
+
+  "_sessionid": "Your instagram.com 'sessionid' cookie value (NOT your password). See the README for how to copy it from your browser.",
+  "sessionid": "",
+
+  "_targets": "Accounts to track. 'self' means your own account. Add usernames you want to monitor, e.g. [\"self\", \"some_account\"].",
+  "targets": ["self"],
+
+  "_known_ids": "Optional username -> numeric id map. Skips the rate-limited profile lookup. Leave empty to resolve automatically.",
+  "known_ids": {},
+
+  "port": 5005,
+
+  "_safety": "Conservative defaults to reduce rate-limit risk.",
+  "delay_seconds": 3.0,
+  "delay_jitter_seconds": 2.5,
+  "min_scan_interval_seconds": 600,
+  "followers_max_passes": 3
+}

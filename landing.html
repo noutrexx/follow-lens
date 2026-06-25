@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FollowLens - Private Instagram follower analytics</title>
+<meta name="description" content="FollowLens is a private, local Instagram follower analytics dashboard for tracking followers, following, unfollowers, one-way follows, and change history.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0b0b10">
+<meta name="keywords" content="instagram analytics, follower tracker, unfollowers, mutuals, account comparison, social graph, FollowLens">
+<meta name="author" content="FollowLens">
+<link rel="canonical" href="https://github.com/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23d81b60'/%3E%3Cpath d='M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z' fill='none' stroke='white' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='12' r='2.6' fill='white'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="FollowLens">
+<meta property="og:title" content="FollowLens - Private Instagram follower analytics">
+<meta property="og:description" content="Track followers, following, mutuals, unfollowers and compare accounts. Private and self-hosted, with full change history.">
+<meta property="og:image" content="/assets/dashboard-preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FollowLens - Private Instagram follower analytics">
+<meta name="twitter:description" content="Private, self-hosted Instagram analytics: followers, mutuals, unfollowers, account comparison and history.">
+<meta name="twitter:image" content="/assets/dashboard-preview.png">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"FollowLens","applicationCategory":"AnalyticsApplication","operatingSystem":"Any","description":"Private, self-hosted Instagram follower analytics dashboard with account comparison and change history.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+<style>
+ :root{
+  --bg:#0b0b10;--bg2:#111118;--text:#f7f7f8;--muted:#b5b5c3;--faint:#777789;
+  --line:rgba(255,255,255,.12);--line2:rgba(255,255,255,.2);--panel:rgba(255,255,255,.055);
+  --pink:#d81b60;--orange:#f4511e;--amber:#f9a825;--violet:#8e24aa;--green:#28d17e;
+  --grad:linear-gradient(120deg,#f9a825,#f4511e 34%,#d81b60 66%,#8e24aa);
+  --max:1120px;--r:14px;
+ }
+ *{box-sizing:border-box}
+ html{scroll-behavior:smooth}
+ body{margin:0;background:
+  radial-gradient(circle at 18% -10%,rgba(216,27,96,.18),transparent 32%),
+  radial-gradient(circle at 86% 2%,rgba(249,168,37,.12),transparent 28%),
+  linear-gradient(180deg,#0b0b10 0%,#101018 48%,#0b0b10 100%);
+  color:var(--text);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+ a{color:inherit;text-decoration:none}
+ .wrap{max-width:var(--max);margin:0 auto;padding:0 24px}
+ .nav{position:sticky;top:0;z-index:50;background:rgba(11,11,16,.78);border-bottom:1px solid var(--line);backdrop-filter:blur(18px) saturate(1.35)}
+ .nav-in{height:68px;display:flex;align-items:center;gap:22px}
+ .brand{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:0}
+ .mark{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;box-shadow:0 10px 30px rgba(216,27,96,.34)}
+ .mark svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.9}
+ .nav-links{display:flex;gap:20px;margin-left:auto;color:rgba(255,255,255,.68);font-size:13px;font-weight:750}
+ .nav-links a:hover{color:#fff}
+ .nav-actions{display:flex;gap:10px;align-items:center}
+ .btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid transparent;border-radius:10px;padding:10px 15px;font-weight:850;font-size:13.5px;transition:.16s}
+ .btn-primary{background:var(--grad);color:#fff;box-shadow:0 14px 34px rgba(216,27,96,.24)}
+ .btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+ .btn-secondary{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.14);color:#fff}
+ .btn-secondary:hover{background:rgba(255,255,255,.11)}
+
+ .hero{position:relative;padding:94px 0 76px;border-bottom:1px solid var(--line);overflow:hidden}
+ .hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(420px,.92fr);gap:48px;align-items:center}
+ .eyebrow{display:inline-flex;align-items:center;gap:9px;padding:7px 11px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.78);font-size:12px;font-weight:850}
+ .eyebrow i{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 5px rgba(40,209,126,.12)}
+ h1{margin:20px 0 0;max-width:660px;font-size:62px;line-height:1.01;letter-spacing:0;font-weight:900}
+ .lead{margin:20px 0 0;max-width:570px;color:rgba(255,255,255,.74);font-size:18px;line-height:1.65}
+ .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+ .trust-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:28px;max-width:610px}
+ .trust{padding:12px 13px;border:1px solid rgba(255,255,255,.11);border-radius:12px;background:rgba(255,255,255,.045);color:rgba(255,255,255,.72);font-size:13px;font-weight:750}
+ .trust b{display:block;color:#fff;font-size:15px;margin-bottom:1px}
+
+ .mock-card{position:relative;border-radius:22px;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.045));border:1px solid rgba(255,255,255,.16);padding:12px;box-shadow:0 28px 90px rgba(0,0,0,.48)}
+ .mock-card::before{content:"";position:absolute;inset:-1px;border-radius:22px;background:linear-gradient(120deg,rgba(249,168,37,.44),rgba(216,27,96,.3),rgba(142,36,170,.35));z-index:-1;filter:blur(18px);opacity:.38}
+ .mock-top{height:38px;display:flex;align-items:center;gap:7px;padding:0 10px;border-bottom:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.55);font:700 11px "JetBrains Mono",monospace}
+ .mock-dot{width:9px;height:9px;border-radius:50%;background:#ff5f57}.mock-dot:nth-child(2){background:#ffbd2e}.mock-dot:nth-child(3){background:#28c840}
+ .mock-img{display:block;width:100%;aspect-ratio:1.56;object-fit:cover;object-position:top center;border-radius:14px;margin-top:12px;border:1px solid rgba(255,255,255,.1)}
+ .metric-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+ .metric{padding:13px;border-radius:12px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.09)}
+ .metric span{display:block;color:var(--faint);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+ .metric strong{display:block;margin-top:4px;font-size:20px}
+
+ section{padding:74px 0;border-bottom:1px solid var(--line)}
+ .section-head{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:28px;align-items:end;margin-bottom:28px}
+ .kicker{color:#ff6b9c;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.12em}
+ h2{margin:8px 0 0;max-width:680px;font-size:38px;line-height:1.08;letter-spacing:0}
+ .section-copy{margin:0;color:var(--muted);font-size:15px}
+ .features{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+ .feature,.step,.plan,details{border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.035));border-radius:var(--r)}
+ .feature{padding:20px;min-height:182px}
+ .icon{width:38px;height:38px;border-radius:11px;background:rgba(216,27,96,.14);border:1px solid rgba(216,27,96,.28);display:grid;place-items:center;margin-bottom:16px}
+ .icon svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.9}
+ h3{margin:0 0 8px;font-size:16px}
+ .feature p,.step p,.plan p,details p{margin:0;color:var(--muted);font-size:14px}
+
+ .product{background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.015))}
+ .product-grid{display:grid;grid-template-columns:1fr .75fr;gap:28px;align-items:center}
+ .product-shot{border:1px solid rgba(255,255,255,.14);border-radius:18px;overflow:hidden;background:#111;box-shadow:0 24px 70px rgba(0,0,0,.42)}
+ .product-shot img{display:block;width:100%;aspect-ratio:1.62;object-fit:cover;object-position:top center}
+ .checks{display:grid;gap:12px}
+ .check{display:flex;gap:11px;align-items:flex-start;color:rgba(255,255,255,.76);font-weight:700}
+ .check i{width:21px;height:21px;flex:0 0 21px;border-radius:50%;background:rgba(40,209,126,.13);border:1px solid rgba(40,209,126,.38);position:relative}
+ .check i::after{content:"";position:absolute;left:6px;top:4px;width:7px;height:10px;border-right:2px solid var(--green);border-bottom:2px solid var(--green);transform:rotate(40deg)}
+
+ .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+ .step{padding:22px}
+ .num{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;font:800 13px "JetBrains Mono",monospace;margin-bottom:20px}
+ .pricing{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+ .plan{padding:26px}
+ .plan.featured{border-color:rgba(216,27,96,.45);box-shadow:0 22px 70px rgba(216,27,96,.12)}
+ .plan small{color:#ff6b9c;font-weight:900;text-transform:uppercase;letter-spacing:.12em}
+ .price{font-size:38px;font-weight:900;margin:10px 0 4px}
+ .plan ul{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:10px;color:rgba(255,255,255,.76);font-size:14px}
+ .plan li::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:9px}
+ .faq{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+ details{padding:18px}
+ summary{cursor:pointer;list-style:none;font-weight:850}
+ summary::-webkit-details-marker{display:none}
+ details p{margin-top:12px}
+ .cta{background:var(--grad);border:0;color:#fff}
+ .cta-box{display:flex;align-items:center;justify-content:space-between;gap:24px}
+ .cta h2{margin:0}.cta p{margin:10px 0 0;color:rgba(255,255,255,.78)}
+ .cta .btn{background:#fff;color:#141414;box-shadow:none}
+ footer{padding:30px 0;color:var(--faint);font-size:13px}
+ .foot{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
+
+ @media(max-width:960px){
+  .nav-links{display:none}
+  .hero-grid,.section-head,.product-grid,.features,.steps,.pricing,.faq{grid-template-columns:1fr}
+  .hero{padding-top:70px}
+  h1{font-size:50px}
+  .section-copy{max-width:620px}
+  .features{grid-template-columns:repeat(2,1fr)}
+ }
+ @media(max-width:560px){
+  .wrap{padding:0 18px}
+  .nav-in{height:64px}
+  .nav-actions .btn-secondary{display:none}
+  .btn{width:100%;padding:12px 14px}
+  .nav-actions .btn{width:auto;padding:9px 12px}
+  .hero-actions{display:grid}
+  h1{font-size:39px}
+  h2{font-size:30px}
+  .lead{font-size:16px}
+  .trust-row{grid-template-columns:repeat(3,1fr);gap:7px}
+  .trust{padding:9px 8px;font-size:11px}
+  .trust b{font-size:12px}
+  .features{grid-template-columns:1fr}
+  .mock-card{padding:9px;border-radius:18px}
+  .mock-img{aspect-ratio:1.35}
+  .product-shot img{aspect-ratio:1.22}
+  .metric-strip{grid-template-columns:repeat(3,1fr);gap:7px}
+  .metric{padding:9px 7px}
+  .metric span{font-size:9px}
+  .metric strong{font-size:16px}
+  section{padding:58px 0}
+  .cta-box{display:block}
+  .cta .btn{margin-top:20px}
+ }
+ /* polish: reveal, hover, active-nav, aurora */
+ .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .65s cubic-bezier(.2,.7,.3,1)}
+ .reveal.in{opacity:1;transform:none}
+ .feature,.plan,.step{transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+ .feature:hover,.plan:hover,.step:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.22);box-shadow:0 18px 50px rgba(0,0,0,.32)}
+ .feature:hover .icon{background:rgba(216,27,96,.22);border-color:rgba(216,27,96,.5)}
+ .nav-links a{position:relative}
+ .nav-links a.active{color:#fff}
+ .nav-links a.active::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:2px;border-radius:2px;background:var(--grad)}
+ .land-aurora{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+ .land-aurora i{position:absolute;border-radius:50%;filter:blur(100px);display:block}
+ .la1{width:520px;height:520px;background:#d81b60;top:-160px;left:-120px;opacity:.13;animation:la1 26s ease-in-out infinite}
+ .la2{width:460px;height:460px;background:#8e24aa;bottom:-180px;right:-120px;opacity:.10;animation:la2 30s ease-in-out infinite}
+ @keyframes la1{50%{transform:translate(60px,40px) scale(1.12)}}
+ @keyframes la2{50%{transform:translate(-50px,-30px) scale(1.1)}}
+ @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}.land-aurora i{animation:none}}
+</style>
+</head>
+<body>
+<div class="land-aurora"><i class="la1"></i><i class="la2"></i></div>
+<nav class="nav">
+ <div class="wrap nav-in">
+  <a class="brand" href="/">
+   <span class="mark"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
+   <span>FollowLens</span>
+  </a>
+  <div class="nav-links">
+   <a href="#features">Features</a>
+   <a href="#product">Product</a>
+   <a href="#privacy">Privacy</a>
+   <a href="#pricing">Pricing</a>
+  </div>
+  <div class="nav-actions">
+   <a class="btn btn-secondary" href="/dashboard">View demo</a>
+   <a class="btn btn-primary" href="#pricing">Get started</a>
+  </div>
+ </div>
+</nav>
+
+<main>
+ <section class="hero">
+  <div class="wrap hero-grid">
+   <div>
+    <div class="eyebrow"><i></i> Private follower analytics, stored locally</div>
+    <h1>Track Instagram follower changes with confidence.</h1>
+    <p class="lead">FollowLens shows who followed, unfollowed, stopped following back, and how your network changed over time. No hosted account, no password form.</p>
+    <div class="hero-actions">
+     <a class="btn btn-primary" href="/dashboard">Open live dashboard</a>
+     <a class="btn btn-secondary" href="#features">See features</a>
+    </div>
+    <div class="trust-row">
+     <div class="trust"><b>No password</b>Uses your local session</div>
+     <div class="trust"><b>Local data</b>Snapshots stay on disk</div>
+     <div class="trust"><b>History</b>Every scan is comparable</div>
+    </div>
+   </div>
+   <div class="mock-card">
+    <div class="mock-top"><span class="mock-dot"></span><span class="mock-dot"></span><span class="mock-dot"></span><span>followlens.local/dashboard</span></div>
+    <img class="mock-img" src="/assets/dashboard-preview.png" alt="FollowLens dashboard preview">
+    <div class="metric-strip">
+     <div class="metric"><span>Followers</span><strong>842</strong></div>
+     <div class="metric"><span>Mutual</span><strong>78%</strong></div>
+     <div class="metric"><span>One-way</span><strong>134</strong></div>
+    </div>
+   </div>
+  </div>
+ </section>
+
+ <section id="features">
+  <div class="wrap">
+   <div class="section-head">
+    <div><div class="kicker">Core features</div><h2>Readable follower intelligence without spreadsheet work.</h2></div>
+    <p class="section-copy">The interface stays focused on the decisions users actually care about: what changed, who is one-way, and when it happened.</p>
+   </div>
+   <div class="features">
+    <article class="feature"><div class="icon"><svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M19 8v6M16 11h6"/></svg></div><h3>Follower changes</h3><p>New and removed followers are separated by scan date.</p></article>
+    <article class="feature"><div class="icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 7h14M7 7l-4 7h8zM17 7l-4 7h8z"/></svg></div><h3>Reciprocity</h3><p>Find accounts you follow that do not follow back.</p></article>
+    <article class="feature"><div class="icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m6 15 4-4 4 3 6-8"/></svg></div><h3>Snapshots</h3><p>Keep timestamped follower and following history locally.</p></article>
+    <article class="feature"><div class="icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-5"/></svg></div><h3>Private by default</h3><p>Data is generated and stored on your own machine.</p></article>
+   </div>
+  </div>
+ </section>
+
+ <section class="product" id="product">
+  <div class="wrap product-grid">
+   <div class="product-shot"><img src="/assets/dashboard-preview.png" alt="FollowLens product dashboard"></div>
+   <div>
+    <div class="kicker">Product view</div>
+    <h2>A dashboard that feels like a product, not a script.</h2>
+    <p class="section-copy">Use the current local dashboard as the product core, then package scheduled scans, exports, and onboarding around it.</p>
+    <div class="checks" style="margin-top:22px">
+     <div class="check"><i></i><span>Multi-account switcher and recent change feed.</span></div>
+     <div class="check"><i></i><span>Account comparison: shared followers and mutual overlap.</span></div>
+     <div class="check"><i></i><span>Searchable username lists with direct Instagram links.</span></div>
+     <div class="check"><i></i><span>Export-ready data model for CSV and PDF reports.</span></div>
+    </div>
+   </div>
+  </div>
+ </section>
+
+ <section id="privacy">
+  <div class="wrap">
+   <div class="section-head">
+    <div><div class="kicker">How it works</div><h2>Three steps from session to follower history.</h2></div>
+    <p class="section-copy">A conservative local scanner collects the accessible lists and turns each run into a comparable snapshot.</p>
+   </div>
+   <div class="steps">
+    <article class="step"><div class="num">01</div><h3>Add session</h3><p>Paste the local browser session value into config. No password form.</p></article>
+    <article class="step"><div class="num">02</div><h3>Run scan</h3><p>Fetch followers and following for your selected accounts.</p></article>
+    <article class="step"><div class="num">03</div><h3>Review diff</h3><p>Open the dashboard and inspect additions, removals, and one-way follows.</p></article>
+   </div>
+  </div>
+ </section>
+
+ <section id="pricing">
+  <div class="wrap">
+   <div class="section-head">
+    <div><div class="kicker">Packaging</div><h2>A clean path from free local tool to paid product.</h2></div>
+    <p class="section-copy">The landing page now frames the app as a product while keeping realistic next paid features.</p>
+   </div>
+   <div class="pricing">
+    <article class="plan"><small>Local</small><div class="price">Free</div><p>For personal monitoring on one machine.</p><ul><li>Manual scans</li><li>Local snapshots</li><li>Follower diffs</li><li>JSON export</li></ul></article>
+    <article class="plan featured"><small>Pro</small><div class="price">$9/mo</div><p>For scheduled tracking and polished reports.</p><ul><li>Scheduled scans</li><li>CSV and PDF reports</li><li>Desktop notifications</li><li>Multi-account history</li></ul></article>
+   </div>
+  </div>
+ </section>
+
+ <section>
+  <div class="wrap">
+   <div class="section-head">
+    <div><div class="kicker">FAQ</div><h2>Answer trust questions before a buyer hesitates.</h2></div>
+   </div>
+   <div class="faq">
+    <details open><summary>Does it ask for my Instagram password?</summary><p>No. The local version uses a browser session value. That value is sensitive, so it should stay on your machine.</p></details>
+    <details><summary>Can Instagram limit the account?</summary><p>Any automation can carry risk. FollowLens uses cooldowns and delays, but scans should stay conservative.</p></details>
+    <details><summary>Where is the data stored?</summary><p>Snapshots are stored locally in the project data folder.</p></details>
+    <details><summary>Can it monitor private accounts?</summary><p>Only accounts your session can already access.</p></details>
+   </div>
+  </div>
+ </section>
+
+ <section class="cta">
+  <div class="wrap cta-box">
+   <div><h2>Keep the dashboard. Sell the workflow around it.</h2><p>Scheduled scans, reports, onboarding, and privacy messaging are the next product layer.</p></div>
+   <a class="btn" href="/dashboard">Open dashboard</a>
+  </div>
+ </section>
+</main>
+
+<footer>
+ <div class="wrap foot">
+  <span>FollowLens - private Instagram analytics</span>
+  <span>No cloud account required. Data stays local.</span>
+ </div>
+</footer>
+<script>
+(function(){
+ var els=document.querySelectorAll('.feature,.step,.plan,.section-head,.faq details,.mock-card,.product-shot,.check,.trust,.cta-box,.metric');
+ els.forEach(function(e,i){e.classList.add('reveal');e.style.transitionDelay=(Math.min(i%4,3)*70)+'ms';});
+ var io=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+ els.forEach(function(e){io.observe(e);});
+ document.querySelectorAll('.metric strong').forEach(function(el){
+  var m=el.textContent.match(/(\d+)(\D*)/);if(!m)return;var tgt=+m[1],suf=m[2]||'',t0=null,seen=false;
+  function step(t){if(!t0)t0=t;var p=Math.min(1,(t-t0)/900),e=1-Math.pow(1-p,3);el.textContent=Math.round(tgt*e)+suf;if(p<1)requestAnimationFrame(step);}
+  var mo=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting&&!seen){seen=true;requestAnimationFrame(step);mo.disconnect();}});},{threshold:.5});mo.observe(el);
+ });
+ var links=document.querySelectorAll('.nav-links a'),map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a;});
+ var so=new IntersectionObserver(function(es){es.forEach(function(en){if(en.isIntersecting){links.forEach(function(a){a.classList.remove('active');});if(map[en.target.id])map[en.target.id].classList.add('active');}});},{threshold:.4});
+ document.querySelectorAll('section[id]').forEach(function(s){so.observe(s);});
+})();
+</script>
+</body>
+</html>

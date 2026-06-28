@@ -1,12 +1,17 @@
-# ───────── Secrets & personal data — NEVER commit ─────────
-config.json            # contains your sessionid (auth token) and targets
-sessions/              # cached login sessions
-data/                  # scraped follower/following snapshots (personal)
-viewer.html            # generated dashboard, embeds real usernames
+# ── Secrets & personal data — NEVER commit ──
+# config.json holds your sessionid (auth token) and tracked accounts
+config.json
+# scraped follower/following snapshots (personal)
+data/
+# generated dashboards embed real usernames
+viewer.html
+frontend/viewer.html
+# cached login sessions
+sessions/
 *.log
 .last_scan
 
-# ───────── Python ─────────
+# ── Python ──
 .venv/
 venv/
 env/
@@ -14,7 +19,7 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 
-# ───────── OS / editor ─────────
+# ── OS / editor ──
 .DS_Store
 Thumbs.db
 .idea/

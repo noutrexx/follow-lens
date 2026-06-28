@@ -1,0 +1,6 @@
+# Keep the GitHub language bar focused on the application code (Python).
+# The HTML/SVG here is generated/static presentation, not the core source.
+frontend/*.html linguist-detectable=false
+*.svg           linguist-detectable=false
+*.bat           linguist-detectable=false
+assets/*        linguist-vendored

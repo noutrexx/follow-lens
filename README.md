@@ -1,12 +1,8 @@
 <div align="center">
 
-<img src="assets/dashboard-preview.png" alt="FollowLens dashboard" width="820">
+<img src="assets/banner.png" alt="FollowLens — private Instagram follower analytics" width="100%">
 
-# 👁 FollowLens
-
-### Private, self-hosted Instagram follower analytics
-
-Track who **followed**, **unfollowed**, **stopped following back**, and **compare accounts** — all on your own machine. No hosted account, no password form.
+### Track who **followed**, **unfollowed**, **stopped following back**, and **compare accounts** — all on your own machine. No hosted account, no password form.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
@@ -18,6 +14,8 @@ Track who **followed**, **unfollowed**, **stopped following back**, and **compar
 </div>
 
 ---
+
+<img src="assets/dashboard-preview.png" alt="FollowLens dashboard" width="100%">
 
 ## ✨ Features
 
@@ -67,7 +65,7 @@ cp config.example.json config.json
 ### Run
 
 ```bash
-.venv\Scripts\python.exe server.py
+.venv\Scripts\python.exe run.py
 ```
 
 Then open **http://localhost:5005** and click **Refresh**, or trigger a scan from the server directly:
@@ -106,13 +104,20 @@ curl -X POST "http://localhost:5005/scan?force=1"   # skip the cooldown
 ## 📁 Project structure
 
 ```
-server.py          Flask server (landing, dashboard, /scan endpoint)
-scanner.py         Scan orchestration: cooldown, diff, snapshots
-igweb.py           Instagram web client (session-based, rate-limit aware)
-storage.py         Snapshot storage + diff
-report_html.py     Dashboard generator (bento UI)
-landing.html       Marketing landing page
-config.example.json  Sample config (copy to config.json)
+follow-lens/
+├─ run.py                 # entry point — python run.py
+├─ backend/               # application code
+│  ├─ server.py           #   Flask server (routes + /scan endpoint)
+│  ├─ scanner.py          #   scan orchestration: cooldown, diff, snapshots
+│  ├─ igweb.py            #   Instagram web client (session-based, rate-limit aware)
+│  ├─ storage.py          #   snapshot storage + diff
+│  └─ report_html.py      #   dashboard generator (bento UI)
+├─ frontend/              # static pages served by the app
+│  ├─ landing.html        #   marketing landing page
+│  └─ og.svg              #   social preview image
+├─ assets/                # screenshots used in this README
+├─ config.example.json    # sample config (copy to config.json)
+└─ requirements.txt
 ```
 
 ## 📄 License

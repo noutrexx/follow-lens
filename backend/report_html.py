@@ -5,9 +5,9 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
-OUT = ROOT / "viewer.html"
+OUT = ROOT / "frontend" / "viewer.html"
 
 
 def _load(td: Path, kind: str) -> list[dict]:

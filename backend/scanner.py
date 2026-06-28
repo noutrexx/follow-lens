@@ -1,4 +1,4 @@
-"""Tarama mantığı: cooldown kontrolü → hedefleri çek → diff → snapshot kaydet."""
+"""Scan logic: cooldown check -> fetch targets -> diff -> save snapshots."""
 from __future__ import annotations
 
 import json
@@ -10,7 +10,7 @@ import igweb
 import report_html
 import storage
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).resolve().parents[1]
 LAST_SCAN = ROOT / "data" / ".last_scan"
 
 

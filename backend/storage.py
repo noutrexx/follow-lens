@@ -1,11 +1,11 @@
-"""Anlık görüntü (snapshot) saklama + karşılaştırma."""
+"""Snapshot storage and diffing."""
 from __future__ import annotations
 
 import json
 from datetime import datetime
 from pathlib import Path
 
-DATA_DIR = Path(__file__).parent / "data"
+DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 
 
 def _dir(target: str) -> Path:

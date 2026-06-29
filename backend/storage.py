@@ -15,6 +15,7 @@ def _dir(target: str) -> Path:
 
 
 def latest_snapshot(target: str, kind: str) -> dict | None:
+    """Return the most recent snapshot for ``target``/``kind``, or ``None``."""
     files = sorted(_dir(target).glob(f"{kind}_*.json"))
     if not files:
         return None
@@ -23,6 +24,7 @@ def latest_snapshot(target: str, kind: str) -> dict | None:
 
 
 def save_snapshot(target: str, kind: str, users: dict[str, str]) -> Path:
+    """Write a timestamped snapshot and return its path."""
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     path = _dir(target) / f"{kind}_{ts}.json"
     with open(path, "w", encoding="utf-8") as f:
@@ -35,6 +37,7 @@ def save_snapshot(target: str, kind: str, users: dict[str, str]) -> Path:
 
 
 def diff(old: dict | None, new_users: dict[str, str]) -> dict:
+    """Compare a previous snapshot with the current users and return the delta."""
     if old is None:
         return {"added": {}, "removed": {}, "is_baseline": True}
     ou = old.get("users", {})

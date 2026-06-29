@@ -1,0 +1,15 @@
+title = "FollowLens gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Non-secret fixtures and public identifiers"
+paths = [
+  '''tests/.*''',
+  '''config\.example\.json''',
+]
+regexes = [
+  # Public Instagram web app id used by the client (not a secret)
+  '''936619743392459''',
+]

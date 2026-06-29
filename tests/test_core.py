@@ -32,7 +32,7 @@ class DiffTests(unittest.TestCase):
 
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):
-        client = igweb.IGWeb("42120983%3Asometoken%3A17")
+        client = igweb.IGWeb("42120983%3Ademosession%3A17")
         self.assertEqual(client.self_id, "42120983")
 
     def test_known_ids_are_lowercased_and_stringified(self):

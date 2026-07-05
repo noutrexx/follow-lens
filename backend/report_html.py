@@ -36,7 +36,8 @@ def _build_kind(snaps: list[dict]) -> dict | None:
     cur = snaps[-1]
     return {"current": {"at": cur.get("captured_at"),
                         "count": cur.get("count", len(cur.get("users", {}))),
-                        "usernames": sorted(cur.get("users", {}).values())},
+                        # kept in API order (most recent follow first) so the UI can sort by recency
+                        "usernames": list(cur.get("users", {}).values())},
             "history": list(reversed(history)), "series": series, "scans": len(snaps)}
 
 
@@ -225,6 +226,9 @@ TPL = r"""<!DOCTYPE html>
  details{margin-top:6px;} summary{list-style:none;cursor:pointer;} summary::-webkit-details-marker{display:none;}
  .more{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--accent);font-weight:700;padding:6px 0;}
  details[open] .more .ic{transform:rotate(180deg);}
+ .sortbar{display:inline-flex;align-items:center;gap:6px;margin:2px 0 12px;font-size:12px;color:var(--faint);font-weight:600;}
+ .sortbar button{border:1px solid var(--line);background:var(--glass);color:var(--muted);font:inherit;font-size:12px;font-weight:600;padding:4px 12px;border-radius:7px;cursor:pointer;transition:.13s;}
+ .sortbar button:hover{color:var(--text);border-color:var(--line2);} .sortbar button.on{background:var(--grad);color:#fff;border-color:transparent;}
  .sec-act{display:inline-flex;align-items:center;gap:6px;margin-left:auto;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border:1px solid var(--line);background:var(--glass);border-radius:7px;padding:5px 10px;transition:.13s;}
  .sec-act:hover{color:var(--text);border-color:var(--line2);} .sec-act svg{width:13px;height:13px;}
  .hidden{display:none!important;}
@@ -297,11 +301,17 @@ function timeline(d,host){const items=d.history.slice(0,12);
   if(h.removed.length)s+='<div class="lg down">'+ic('down')+'Removed &middot; '+h.removed.length+'</div><div class="chips">'+h.removed.map(u=>chip(u,'rem')).join('')+'</div>';
   return s+'</div>';}).join('');}
 const chip=(u,c)=>'<a class="chip '+c+'" data-u="'+u+'" href="'+igl(u)+'" target="_blank">@'+u+'</a>';
-function grid(list,id){return '<div class="grid"'+(id?' id="'+id+'"':'')+'>'+list.map(u=>'<a data-u="'+u+'" href="'+igl(u)+'" target="_blank"><span class="gm">'+ini(u)+'</span>@'+u+'</a>').join('')+'</div>';}
+function grid(list,id){return '<div class="grid"'+(id?' id="'+id+'"':'')+'>'+list.map((u,i)=>'<a data-u="'+u+'" data-i="'+i+'" href="'+igl(u)+'" target="_blank"><span class="gm">'+ini(u)+'</span>@'+u+'</a>').join('')+'</div>';}
+function sortList(btn,id,mode){btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
+ const box=document.getElementById(id);if(!box)return;const items=[...box.children];
+ if(mode==='az')items.sort((a,b)=>a.dataset.u.localeCompare(b.dataset.u));else items.sort((a,b)=>(+a.dataset.i)-(+b.dataset.i));
+ items.forEach(el=>box.appendChild(el));}
 function cmp(title,list){return '<div class="tile" style="padding:15px 17px"><div class="cmp-t"><span>'+title+'</span><span class="pill">'+list.length+'</span></div>'+(list.length?grid(list):'<span class="empty">None</span>')+'</div>';}
 function listSection(name,kind,d,label,icn){const lid='l_'+name+'_'+kind;
  return '<div class="sec"><div class="sec-h">'+ic(icn)+'<div class="sec-t">'+label+'</div><span class="pill">'+d.current.count+'</span></div>'
-  +'<details><summary><div class="more">Show '+d.current.count+' &middot; '+label+' '+ic('chev')+'</div></summary>'+grid(d.current.usernames,lid)+'</details></div>';}
+  +'<details><summary><div class="more">Show '+d.current.count+' &middot; '+label+' '+ic('chev')+'</div></summary>'
+  +'<div class="sortbar">Sort<button class="on" onclick="sortList(this,\''+lid+'\',\'recent\')">Newest</button><button onclick="sortList(this,\''+lid+'\',\'az\')">A&ndash;Z</button></div>'
+  +grid(d.current.usernames,lid)+'</details></div>';}
 function panel(name){const t=DATA.targets[name],s=t.stats||{},disp=t.display||name;
  const fwBack=t.compare?t.compare.not_following_back.length:0;
  const pct=s.following?Math.round(s.mutual/s.following*100):0;

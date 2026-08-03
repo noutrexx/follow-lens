@@ -25,3 +25,5 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+# local agent/editor launch config with machine-specific paths
+.claude/

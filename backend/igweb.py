@@ -3,7 +3,8 @@
 The client talks to the same private web endpoints the browser uses. To keep the
 request volume conservative it skips ``web_profile_info`` for accounts whose id is
 already known, spaces requests with a randomized delay, caps the number of
-follower union passes, and backs off and retries on HTTP 429.
+follower union passes, and backs off and retries on HTTP 429. A page that still
+fails aborts the walk, so an incomplete list is never mistaken for a complete one.
 """
 from __future__ import annotations
 
@@ -22,6 +23,15 @@ USER_AGENT = (
 
 class RateLimited(Exception):
     """Raised when Instagram keeps returning HTTP 429 after retries."""
+
+
+class FetchError(Exception):
+    """Raised when a friendship page comes back with an unexpected status.
+
+    Pagination must fail loudly: a page that is silently skipped truncates the
+    list, and a truncated list looks exactly like a batch of accounts that
+    unfollowed.
+    """
 
 
 def _sleep(base: float, jitter: float) -> None:
@@ -96,7 +106,10 @@ class IGWeb:
             params["max_id"] = max_id
         resp = self._get(url, params)
         if resp.status_code != 200:
-            return [], None
+            raise FetchError(
+                f"{kind} page for {uid} returned HTTP {resp.status_code}; "
+                "aborting so a partial list is not stored as a full one."
+            )
         body = resp.json()
         items = [(str(u["pk"]), u["username"]) for u in body.get("users", [])]
         return items, body.get("next_max_id")

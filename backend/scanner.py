@@ -59,7 +59,7 @@ def run_scan(force: bool = False) -> dict:
         uname = me_username if t == "self" else t
         try:
             uid = ig.self_id if t == "self" else ig.resolve_uid(uname)["id"]
-            fwg = ig.following(uid)
+            fwg = ig.following(uid, max_passes=max_passes)
             flw = ig.followers(uid, max_passes=max_passes)
         except igweb.RateLimited as e:
             return {"ok": False, "error": f"429: {e} (too many scans today, try again in ~30 min)"}

@@ -68,8 +68,46 @@ class PaginationTests(unittest.TestCase):
     def test_full_walk_unions_pages(self):
         first = {"users": [{"pk": 1, "username": "alice"}], "next_max_id": "cursor"}
         second = {"users": [{"pk": 2, "username": "bob"}], "next_max_id": None}
-        client = self._client([_StubResponse(200, first), _StubResponse(200, second)])
+        repeat = {"users": [{"pk": 1, "username": "alice"},
+                            {"pk": 2, "username": "bob"}], "next_max_id": None}
+        client = self._client([_StubResponse(200, first), _StubResponse(200, second),
+                               _StubResponse(200, repeat)])
         self.assertEqual(client.following("42"), {"1": "alice", "2": "bob"})
+
+    def test_single_pass_is_honoured(self):
+        page = {"users": [{"pk": 1, "username": "alice"}], "next_max_id": None}
+        client = self._client([_StubResponse(200, page)])
+        self.assertEqual(client.following("42", max_passes=1), {"1": "alice"})
+        self.assertEqual(client.session.calls, 1)
+
+
+class UnionRecoveryTests(unittest.TestCase):
+    """An account missing from one pass must be recovered by a later pass.
+
+    Instagram answers 200 and still omits accounts, so a single pass reads as
+    an unfollow. Both friendship lists union their passes to absorb that.
+    """
+
+    def _client(self, responses):
+        client = igweb.IGWeb("1%3Ax", delay=0, jitter=0)
+        client.session = _StubSession(responses)
+        return client
+
+    def _pages(self):
+        incomplete = {"users": [{"pk": 1, "username": "alice"}], "next_max_id": None}
+        complete = {"users": [{"pk": 1, "username": "alice"},
+                              {"pk": 2, "username": "bob"}], "next_max_id": None}
+        settled = dict(complete)
+        return [_StubResponse(200, incomplete), _StubResponse(200, complete),
+                _StubResponse(200, settled)]
+
+    def test_following_recovers_account_missing_from_first_pass(self):
+        client = self._client(self._pages())
+        self.assertEqual(client.following("42"), {"1": "alice", "2": "bob"})
+
+    def test_followers_recovers_account_missing_from_first_pass(self):
+        client = self._client(self._pages())
+        self.assertEqual(client.followers("42"), {"1": "alice", "2": "bob"})
 
 
 class SessionParsingTests(unittest.TestCase):

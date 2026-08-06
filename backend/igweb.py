@@ -114,12 +114,12 @@ class IGWeb:
         items = [(str(u["pk"]), u["username"]) for u in body.get("users", [])]
         return items, body.get("next_max_id")
 
-    def following(self, uid: str) -> dict[str, str]:
-        """Return the full following list as ``{user_id: username}``."""
+    def _walk(self, uid: str, kind: str, count: int) -> dict[str, str]:
+        """Page through a friendship list once. Returns ``{user_id: username}``."""
         out: dict[str, str] = {}
         next_max_id = None
         for _ in range(40):
-            users, next_max_id = self._page(uid, "following", next_max_id, 200)
+            users, next_max_id = self._page(uid, kind, next_max_id, count)
             for pk, username in users:
                 out[pk] = username
             if not next_max_id:
@@ -127,26 +127,28 @@ class IGWeb:
             _sleep(self.delay, self.jitter)
         return out
 
-    def followers(self, uid: str, max_passes: int = 3) -> dict[str, str]:
-        """Return the full followers list as ``{user_id: username}``.
+    def _collect(self, uid: str, kind: str, count: int, max_passes: int) -> dict[str, str]:
+        """Union repeated full passes over a friendship list.
 
-        The followers endpoint paginates inconsistently, so we run repeated full
-        passes (up to ``max_passes``) and union the results, stopping early once a
-        pass adds no new accounts.
+        Both friendship endpoints paginate inconsistently: a pass can return HTTP
+        200 and still omit accounts, which then read as unfollows. Repeating the
+        walk and unioning the results recovers those, and the loop stops as soon
+        as a pass adds nothing new so a stable list costs one extra pass.
         """
         out: dict[str, str] = {}
         prev = -1
-        for _ in range(max_passes):
-            next_max_id = None
-            for _ in range(40):
-                users, next_max_id = self._page(uid, "followers", next_max_id, 100)
-                for pk, username in users:
-                    out[pk] = username
-                if not next_max_id:
-                    break
-                _sleep(self.delay, self.jitter)
+        for _ in range(max(1, max_passes)):
+            out.update(self._walk(uid, kind, count))
             if len(out) == prev:
                 break
             prev = len(out)
             _sleep(self.delay, self.jitter)
         return out
+
+    def following(self, uid: str, max_passes: int = 3) -> dict[str, str]:
+        """Return the full following list as ``{user_id: username}``."""
+        return self._collect(uid, "following", 200, max_passes)
+
+    def followers(self, uid: str, max_passes: int = 3) -> dict[str, str]:
+        """Return the full followers list as ``{user_id: username}``."""
+        return self._collect(uid, "followers", 100, max_passes)

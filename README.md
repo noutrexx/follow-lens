@@ -89,7 +89,7 @@ curl -X POST "http://localhost:5005/scan?force=1"   # skip the cooldown
 | `known_ids` | Optional `username` → `id` map to skip the rate-limited profile lookup. |
 | `delay_seconds`, `delay_jitter_seconds` | Randomized delay between requests. |
 | `min_scan_interval_seconds` | Cooldown between full scans (default 600s). |
-| `followers_max_passes` | Number of union passes used to collect the followers list. |
+| `followers_max_passes` | Maximum union passes per friendship list. Both lists stop early once a pass adds nothing new, so a settled list costs one extra pass. Raise it if scans keep reporting the same accounts as leaving and returning. |
 
 ## Privacy and safety
 

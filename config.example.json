@@ -14,7 +14,7 @@
 
   "port": 5005,
 
-  "_safety": "Conservative defaults to reduce rate-limit risk.",
+  "_safety": "Conservative defaults to reduce rate-limit risk. followers_max_passes caps the union passes for BOTH friendship lists; raise it if scans keep reporting the same accounts as leaving and returning.",
   "delay_seconds": 3.0,
   "delay_jitter_seconds": 2.5,
   "min_scan_interval_seconds": 600,

@@ -26,7 +26,9 @@ FollowLens is a self-hosted analytics dashboard for an Instagram account's socia
 - **Reciprocity** — see who you follow that doesn't follow back, and who follows you that you don't follow back.
 - **Account comparison** — Venn-style overlap of shared followers and shared following between any two tracked accounts.
 - **Search and filters** — search any username across the active account, and filter the change feed by new or removed.
-- **Keyboard shortcuts** — `/` to search, `R` to rescan, `Esc` to clear.
+- **Light and dark themes** — follows your system setting by default; the toggle in the header pins a choice and remembers it.
+- **Keyboard shortcuts** — `/` to search, `R` to rescan, `T` to switch theme, `Esc` to clear.
+- **Respects reduced motion** — background and counter animations stand still when the OS asks for less movement.
 - **Export** — download any account's data as JSON.
 - **Private by design** — uses an existing browser session cookie instead of a password, and stores everything locally.
 

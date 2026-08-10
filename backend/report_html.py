@@ -85,7 +85,7 @@ TPL = r"""<!DOCTYPE html>
 <script>/* Apply the saved theme before first paint so the page never flashes. */
 (function(){try{var t=localStorage.getItem('fl-theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
 <link rel="canonical" href="https://github.com/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%2732%27%20y2%3D%2732%27%20gradientUnits%3D%27userSpaceOnUse%27%3E%3Cstop%20stop-color%3D%27%23f9a825%27%2F%3E%3Cstop%20offset%3D%27.38%27%20stop-color%3D%27%23f4511e%27%2F%3E%3Cstop%20offset%3D%27.72%27%20stop-color%3D%27%23d81b60%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%238e24aa%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%278%27%20fill%3D%27url%28%23g%29%27%2F%3E%3Cpath%20d%3D%27M4.5%2016C7.5%2011%2011.4%208.5%2016%208.5S24.5%2011%2027.5%2016c-3%205-6.9%207.5-11.5%207.5S7.5%2021%204.5%2016Z%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%272.3%27%20stroke-linejoin%3D%27round%27%2F%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%273.7%27%20fill%3D%27%23fff%27%2F%3E%3C%2Fsvg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%2032%2032%27%3E%3Cdefs%3E%3ClinearGradient%20id%3D%27g%27%20x1%3D%270%27%20y1%3D%270%27%20x2%3D%2732%27%20y2%3D%2732%27%20gradientUnits%3D%27userSpaceOnUse%27%3E%3Cstop%20stop-color%3D%27%23e0578d%27%2F%3E%3Cstop%20offset%3D%271%27%20stop-color%3D%27%23b52a63%27%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2732%27%20height%3D%2732%27%20rx%3D%278%27%20fill%3D%27url%28%23g%29%27%2F%3E%3Cpath%20d%3D%27M4.5%2016C7.5%2011%2011.4%208.5%2016%208.5S24.5%2011%2027.5%2016c-3%205-6.9%207.5-11.5%207.5S7.5%2021%204.5%2016Z%27%20fill%3D%27none%27%20stroke%3D%27%23fff%27%20stroke-width%3D%272.3%27%20stroke-linejoin%3D%27round%27%2F%3E%3Ccircle%20cx%3D%2716%27%20cy%3D%2716%27%20r%3D%273.7%27%20fill%3D%27%23fff%27%2F%3E%3C%2Fsvg%3E">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="FollowLens">
 <meta property="og:title" content="FollowLens &mdash; Instagram follower analytics">
@@ -143,28 +143,12 @@ tailwind.config = {
   --glass:rgba(255,255,255,.035);--glass2:rgba(255,255,255,.055);--hover:rgba(255,255,255,.06);
   --line:rgba(255,255,255,.10);--line2:rgba(255,255,255,.19);
   --green:#28d17e;--green-bg:rgba(40,209,126,.09);--red:#ff4d6d;--red-bg:rgba(255,77,109,.09);
-  --accent:#ff6b9c;--grad:linear-gradient(120deg,#f9a825,#f4511e 34%,#d81b60 64%,#8e24aa);
+  --accent:#e0578d;--grad:linear-gradient(135deg,#d6376f,#b52a63);
   --r:14px;--r-s:9px;--r-xs:6px;
   --bar-bg:rgba(8,8,12,.8);--grid-line:rgba(255,255,255,.022);
   --track:rgba(255,255,255,.08);--av-bg:#0d0d13;--av-chip:rgba(255,255,255,.14);
-  --wm-c:#fff;--wm-o:.03;--blob-o1:.13;--blob-o2:.10;--blob-o3:.07;
+  --wm-c:#fff;--wm-o:.03;--blob-o1:.10;
   --on-grad:#fff;--ring:rgba(255,107,156,.18);
- }
- /* Light theme: follow the system unless the toggle pinned a choice, and let an
-    explicit data-theme win in both directions. */
- @media(prefers-color-scheme:light){
-  :root:not([data-theme="dark"]){
-   color-scheme:light;
-   --bg:#f7f7fa;--text:#15151c;--muted:#5c5c6e;--faint:#82829a;
-   --glass:rgba(255,255,255,.7);--glass2:rgba(255,255,255,.55);--hover:rgba(16,16,28,.045);
-   --line:rgba(16,16,28,.11);--line2:rgba(16,16,28,.2);
-   --green:#0a8f52;--green-bg:rgba(10,143,82,.1);--red:#d31f43;--red-bg:rgba(211,31,67,.08);
-   --accent:#c2185b;
-   --bar-bg:rgba(247,247,250,.82);--grid-line:rgba(16,16,28,.035);
-   --track:rgba(16,16,28,.09);--av-bg:#fff;--av-chip:rgba(16,16,28,.08);
-   --wm-c:#15151c;--wm-o:.035;--blob-o1:.11;--blob-o2:.09;--blob-o3:.06;
-   --ring:rgba(194,24,91,.18);
-  }
  }
  :root[data-theme="light"]{
   color-scheme:light;
@@ -172,10 +156,10 @@ tailwind.config = {
   --glass:rgba(255,255,255,.7);--glass2:rgba(255,255,255,.55);--hover:rgba(16,16,28,.045);
   --line:rgba(16,16,28,.11);--line2:rgba(16,16,28,.2);
   --green:#0a8f52;--green-bg:rgba(10,143,82,.1);--red:#d31f43;--red-bg:rgba(211,31,67,.08);
-  --accent:#c2185b;
+  --accent:#b52a63;
   --bar-bg:rgba(247,247,250,.82);--grid-line:rgba(16,16,28,.035);
   --track:rgba(16,16,28,.09);--av-bg:#fff;--av-chip:rgba(16,16,28,.08);
-  --wm-c:#15151c;--wm-o:.035;--blob-o1:.11;--blob-o2:.09;--blob-o3:.06;
+  --wm-c:#15151c;--wm-o:.035;--blob-o1:.08;
   --ring:rgba(194,24,91,.18);
  }
  html,body{@apply m-0;}
@@ -186,8 +170,6 @@ tailwind.config = {
  .bgfx{@apply pointer-events-none fixed inset-0 -z-20 overflow-hidden;}
  .blob{@apply absolute rounded-full blur-[95px] will-change-transform;}
  .b1{@apply h-[560px] w-[560px] -left-36 -top-52 animate-drift1;background:#d81b60;opacity:var(--blob-o1);}
- .b2{@apply h-[480px] w-[480px] -right-40 -top-20 animate-drift2;background:#8e24aa;opacity:var(--blob-o2);}
- .b3{@apply h-[600px] w-[600px] -bottom-64 left-1/3 animate-drift3;background:#f4511e;opacity:var(--blob-o3);}
  .wm{@apply absolute;color:var(--wm-c);stroke:var(--wm-c);opacity:var(--wm-o);}
  .wm-eye{@apply h-[640px] w-[640px] -right-40 -bottom-44;}
  .wm-ring{@apply h-[500px] w-[500px] -left-44 top-[42%];opacity:calc(var(--wm-o) * .83);}
@@ -214,7 +196,7 @@ tailwind.config = {
  .live{@apply flex items-center gap-2 rounded-full border border-line bg-surface2 px-2.5 py-1.5 font-mono text-[11px] text-muted;}
  .dot{@apply h-[7px] w-[7px] animate-pulseRing rounded-full;background:var(--green);}
  .ghub{@apply flex text-muted transition-colors hover:text-body;} .ghub svg{@apply h-[18px] w-[18px];}
- .btn{@apply inline-flex cursor-pointer items-center gap-2 rounded-lg border-0 px-4 py-2 font-sans text-[13px] font-bold text-white shadow-lg shadow-brand-pink/25 transition;background:linear-gradient(90deg,#f4511e,#d81b60);}
+ .btn{@apply inline-flex cursor-pointer items-center gap-2 rounded-lg border-0 px-4 py-2 font-sans text-[13px] font-bold text-white shadow-lg shadow-brand-pink/25 transition;background:var(--grad);}
  .btn:hover{@apply brightness-110;} .btn:disabled{@apply cursor-default opacity-50 shadow-none;}
  .btn svg{@apply h-[15px] w-[15px] fill-none stroke-white stroke-2;} .btn.spin svg{@apply animate-spin;}
  .ic{@apply inline-flex items-center justify-center;}
@@ -271,8 +253,8 @@ tailwind.config = {
  .spark .sp-area{fill:url(#sparkg);opacity:.4;stroke:none;}
  /* sections */
  .sec{@apply mt-8;} .sec-h{@apply mb-3.5 flex items-center gap-2.5;}
- .sec-t{@apply font-mono text-[11px] font-bold uppercase tracking-[.18em] text-accent;}
- .sec-h .ic{@apply text-accent;}
+ .sec-t{@apply font-mono text-[11px] font-bold uppercase tracking-[.18em] text-muted;}
+ .sec-h .ic{@apply text-faint;}
  .pill{@apply rounded border border-line bg-surface2 px-2 font-mono text-[11px] font-semibold text-muted;}
  .filters{@apply ml-auto inline-flex gap-1 rounded-lg border border-line bg-surface p-[3px];}
  .filters button{@apply cursor-pointer rounded-md border-0 bg-transparent px-2.5 py-1 font-sans text-xs font-semibold text-muted transition;}
@@ -294,7 +276,7 @@ tailwind.config = {
  .grid{@apply flex flex-wrap gap-1.5;}
  .grid a{@apply inline-flex items-center gap-2 rounded-lg border border-line bg-surface2 py-1 pl-1.5 pr-3 text-[13px] transition;}
  .grid a:hover{@apply border-line2;background:var(--hover);}
- .grid .gm{@apply flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold uppercase text-white;background:linear-gradient(135deg,#d81b60,#8e24aa);}
+ .grid .gm{@apply flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold uppercase text-white;background:var(--grad);}
  .empty{@apply text-[13px] italic text-faint;}
  details{@apply mt-1.5;} summary{@apply cursor-pointer list-none;} summary::-webkit-details-marker{display:none;}
  .more{@apply inline-flex items-center gap-1.5 py-1.5 text-[13px] font-bold text-accent;}
@@ -325,10 +307,6 @@ tailwind.config = {
  .tgl svg{@apply h-4 w-4 fill-none stroke-current stroke-[1.9] [stroke-linecap:round] [stroke-linejoin:round];}
  .tgl .moon{display:none;}
  :root[data-theme="light"] .tgl .moon{display:block;} :root[data-theme="light"] .tgl .sun{display:none;}
- @media(prefers-color-scheme:light){
-  :root:not([data-theme="dark"]) .tgl .moon{display:block;}
-  :root:not([data-theme="dark"]) .tgl .sun{display:none;}
- }
  /* keyboard users get a visible focus ring; mouse users do not */
  :focus-visible{@apply rounded outline outline-2 outline-offset-2 outline-accent;}
  /* Respect the OS "reduce motion" preference: keep the layout, drop the movement. */
@@ -339,10 +317,10 @@ tailwind.config = {
  }
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
- <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f9a825"/><stop offset=".5" stop-color="#d81b60"/><stop offset="1" stop-color="#8e24aa"/></linearGradient>
- <linearGradient id="sparkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6276f" stop-opacity=".55"/><stop offset="1" stop-color="#d6276f" stop-opacity="0"/></linearGradient>
+ <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0578d"/><stop offset="1" stop-color="#b52a63"/></linearGradient>
+ <linearGradient id="sparkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6376f" stop-opacity=".4"/><stop offset="1" stop-color="#d6376f" stop-opacity="0"/></linearGradient>
 </defs></svg>
-<div class="bgfx"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div>
+<div class="bgfx"><div class="blob b1"></div>
  <svg class="wm wm-eye" viewBox="0 0 24 24" fill="none" stroke-width=".5"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
  <svg class="wm wm-ring" viewBox="0 0 24 24" fill="none" stroke-width=".4"><circle cx="12" cy="12" r="11"/><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="4"/></svg>
 </div><div class="grid-ov"></div>
@@ -443,15 +421,12 @@ function panel(name){const t=DATA.targets[name],s=t.stats||{},disp=t.display||na
  h+='</div>';
  return h;}
 // ---- theme ----
-const LIGHT_Q=window.matchMedia('(prefers-color-scheme: light)');
 const STILL_Q=window.matchMedia('(prefers-reduced-motion: reduce)');
-function isLight(){const p=document.documentElement.getAttribute('data-theme');return p?p==='light':LIGHT_Q.matches;}
+function isLight(){return document.documentElement.getAttribute('data-theme')==='light';}
 function paintTheme(){const m=document.querySelector('meta[name=theme-color]');if(m)m.content=isLight()?'#f7f7fa':'#08080c';}
 function toggleTheme(){const next=isLight()?'dark':'light';
  try{localStorage.setItem('fl-theme',next);}catch(e){}
  document.documentElement.setAttribute('data-theme',next);paintTheme();}
-// With no pinned choice, keep following the system if it changes mid-session.
-LIGHT_Q.addEventListener('change',()=>{if(!document.documentElement.getAttribute('data-theme'))paintTheme();});
 paintTheme();
 // ---- interactions ----
 function countUp(panel){panel.querySelectorAll('.num[data-v]').forEach(el=>{const tgt=+el.dataset.v;if(!tgt)return;

@@ -162,6 +162,9 @@ tailwind.config = {
  html,body{@apply m-0;}
  body{@apply bg-page font-mono text-[13.5px] leading-relaxed text-body antialiased;}
  ::selection{background:var(--green-bg);}
+ /* no scrollbar anywhere: scrolling still works, the bar is just not drawn */
+ html{scrollbar-width:none;-ms-overflow-style:none;}
+ *::-webkit-scrollbar{width:0;height:0;display:none;}
  a{@apply text-inherit no-underline;}
  .mono{@apply font-mono;}
  /* ambient background */
@@ -201,8 +204,7 @@ tailwind.config = {
   .gsearch{@apply order-3 mx-0 max-w-none flex-[1_0_100%];}
  }
  /* account switcher */
- .accts{@apply my-5 mb-1 inline-flex max-w-full gap-1 overflow-x-auto rounded-xl border border-line bg-surface p-1;scrollbar-width:none;}
- .accts::-webkit-scrollbar{display:none;}
+ .accts{@apply my-5 mb-1 inline-flex max-w-full gap-1 overflow-x-auto rounded-xl border border-line bg-surface p-1;}
  .acct{@apply flex-none;}
  .acct{@apply flex cursor-pointer items-center gap-2.5 rounded-lg py-1.5 pl-2 pr-3.5 text-muted transition;}
  .acct:hover{@apply text-body;background:var(--hover);}

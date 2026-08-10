@@ -53,6 +53,11 @@ tailwind.config = {
   },
 };
 </script>
+<style type="text/tailwindcss">
+ /* no scrollbar anywhere: scrolling still works, the bar is just not drawn */
+ html{scrollbar-width:none;-ms-overflow-style:none;}
+ *::-webkit-scrollbar{width:0;height:0;display:none;}
+</style>
 </head>
 <body class="bg-ink-950 font-sans text-white/90 antialiased selection:bg-brand/40">
 

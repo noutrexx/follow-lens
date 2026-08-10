@@ -21,22 +21,53 @@ FollowLens is a self-hosted analytics dashboard for an Instagram account's socia
 
 ## Features
 
-- **Dashboard** — followers, following, mutuals and one-way follows at a glance, with animated counters and sparkline trends.
-- **Change history** — every scan is a timestamped snapshot; new and removed accounts are diffed and grouped by date.
-- **Reciprocity** — see who you follow that doesn't follow back, and who follows you that you don't follow back.
-- **Account comparison** — Venn-style overlap of shared followers and shared following between any two tracked accounts.
-- **Search and filters** — search any username across the active account, and filter the change feed by new or removed.
-- **Light and dark themes** — follows your system setting by default; the toggle in the header pins a choice and remembers it.
+- **Scans read as diffs** — every scan is a pane with a `+N -N` tally and one row per account, signed `+` or `-`, saying exactly what happened: *new follower*, *unfollowed*, *now following*, *stopped following*.
+- **Counters that navigate** — following and followers jump to their lists, mutual and one-way to reciprocity; collapsed lists open on the way.
+- **Change history** — each run is a timestamped snapshot, so any two runs stay comparable.
+- **Reciprocity** — who you follow that doesn't follow back, and who follows you that you don't follow back.
+- **Account comparison** — Venn overlap of shared followers and shared following between any two tracked accounts.
+- **Search and filters** — grep any username in the active account and filter the feed to new or removed.
+- **Dark by default, light on request** — the header toggle pins a choice and remembers it.
 - **Keyboard shortcuts** — `/` to search, `R` to rescan, `T` to switch theme, `Esc` to clear.
-- **Respects reduced motion** — background and counter animations stand still when the OS asks for less movement.
+- **Respects reduced motion** — animations stand still when the OS asks for less movement.
 - **Export** — download any account's data as JSON.
 - **Private by design** — uses an existing browser session cookie instead of a password, and stores everything locally.
 
 ## Screenshots
 
-| Account comparison | Change history |
-| --- | --- |
-| ![Account comparison](assets/compare.png) | ![Change history](assets/changes.png) |
+> Every screenshot below is rendered from a generated demo dataset. No real account appears in this repository.
+
+### Change history
+
+One pane per scan: window lights, the timestamp, the tally, then the accounts that moved.
+
+<img src="assets/changes.png" alt="Change history: one terminal pane per scan" width="100%">
+
+### Reciprocity
+
+Who you follow that never followed back, and the other way round.
+
+<img src="assets/reciprocity.png" alt="Reciprocity: one-way follows in both directions" width="100%">
+
+### Account comparison
+
+Shared followers and shared following between two tracked accounts.
+
+<img src="assets/compare.png" alt="Account comparison with shared follower and following overlap" width="100%">
+
+### Light theme
+
+Dark is the default; the header toggle switches and remembers.
+
+<img src="assets/light.png" alt="The dashboard in its light theme" width="100%">
+
+### On a phone
+
+<img src="assets/mobile.png" alt="The dashboard on a narrow screen" width="380">
+
+### Landing page
+
+<img src="assets/landing.png" alt="FollowLens landing page" width="100%">
 
 ## How it works
 
@@ -103,7 +134,7 @@ curl -X POST "http://localhost:5005/scan?force=1"   # skip the cooldown
 
 ## Tech stack
 
-Python, Flask and requests on the backend; vanilla HTML, CSS and JavaScript on the frontend — no framework and no build step.
+Python, Flask and requests on the backend. The frontend is plain HTML and JavaScript styled with Tailwind, loaded from a CDN so there is still no build step, no bundler and no `node_modules`.
 
 ## Project structure
 
@@ -119,6 +150,7 @@ follow-lens/
 ├─ frontend/              # static pages served by the app
 │  ├─ landing.html        #   landing page
 │  └─ og.svg              #   social preview image
+├─ tests/                 # unit tests for diffing and pagination
 ├─ assets/                # images used in this README
 ├─ config.example.json    # sample config (copy to config.json)
 └─ requirements.txt

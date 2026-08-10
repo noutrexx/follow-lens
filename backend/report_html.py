@@ -229,6 +229,11 @@ tailwind.config = {
  .strip{@apply grid overflow-hidden rounded-md border border-line;grid-template-columns:repeat(4,minmax(0,1fr));}
  .strip .tile{@apply rounded-none border-0 border-r border-line;}
  .strip .tile:last-child{@apply border-r-0;}
+ .strip .tile.go{@apply cursor-pointer;} .strip .tile.go:hover{background:var(--hover);}
+ .strip .tile.go .lbl::after{content:' >';@apply text-faint opacity-0 transition-opacity;}
+ .strip .tile.go:hover .lbl::after{@apply opacity-100;}
+ .flash{animation:flash 1.2s ease-out;}
+ @keyframes flash{from{background:var(--green-bg);}to{background:transparent;}}
  @media(max-width:760px){
   .strip{grid-template-columns:repeat(2,minmax(0,1fr));}
   .strip .tile:nth-child(2n){@apply border-r-0;}
@@ -259,7 +264,7 @@ tailwind.config = {
  .spark .sp-line{fill:none;stroke:url(#grad);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
  .spark .sp-area{fill:url(#sparkg);opacity:.4;stroke:none;}
  /* sections */
- .sec{@apply mt-8;} .sec-h{@apply mb-3.5 flex items-center gap-2.5;}
+ .sec{@apply mt-8;scroll-margin-top:72px;} .sec-h{@apply mb-3.5 flex items-center gap-2.5;}
  .sec-t{@apply font-mono text-[11px] font-bold uppercase tracking-[.18em] text-muted;}
  .sec-t::before{content:'# ';@apply text-faint;}
  .sec-h .ic{@apply text-faint;}
@@ -368,10 +373,22 @@ function donut(pct){const r=24,c=2*Math.PI*r,off=c*(1-pct/100);
 function lastDelta(d){if(!d||!d.history.length)return null;const h=d.history[0];return{a:h.added.length,r:h.removed.length};}
 function netChange(d){if(!d||d.series.length<2)return null;return d.series[d.series.length-1].count-d.series[0].count;}
 function delHtml(x){if(!x||(!x.a&&!x.r))return '<span class="dl">no change</span>';const p=[];if(x.a)p.push('<span class="up">'+ic('up')+'+'+x.a+'</span>');if(x.r)p.push('<span class="down">'+ic('down')+x.r+'</span>');return '<span class="dl">'+p.join('&nbsp;')+'</span>';}
-function statTile(lbl,num,icn,d){
- return '<div class="tile st"><div class="top"><span class="lbl">'+lbl+'</span>'+ic(icn)+'</div>'
+function statTile(lbl,num,icn,d,jump){
+ return '<div class="tile st'+(jump?' go" data-jump="'+jump+'" role="button" tabindex="0':'')+'">'
+  +'<div class="top"><span class="lbl">'+lbl+'</span>'+ic(icn)+'</div>'
   +'<div class="num" data-v="'+(typeof num==='number'?num:0)+'">'+(typeof num==='number'?'0':num)+'</div>'
   +'<div class="row">'+delHtml(lastDelta(d))+spark(d?d.series:null)+'</div></div>';}
+// Counters double as navigation: click one to land on the section behind it.
+function jumpTo(id){const el=document.getElementById(id);if(!el)return;
+ el.querySelectorAll('details').forEach(d=>{d.open=true;});
+ // opening a list reflows the page, so let layout settle before measuring the target
+ requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+  el.scrollIntoView({behavior:'smooth',block:'start'});
+  el.classList.add('flash');setTimeout(()=>el.classList.remove('flash'),1200);});});}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-jump]');if(t)jumpTo(t.dataset.jump);});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;
+ const t=document.activeElement&&document.activeElement.closest?document.activeElement.closest('[data-jump]'):null;
+ if(t){e.preventDefault();jumpTo(t.dataset.jump);}});
 function timeline(d,kind){const items=d.history.slice(0,12);
  if(!items.length)return '<div class="card"><span class="empty">No changes yet &mdash; at least 2 scans are needed to compare.</span></div>';
  const L=kind==='followers'?{a:'new follower',r:'unfollowed'}:{a:'now following',r:'stopped following'};
@@ -394,7 +411,7 @@ function sortList(btn,id,mode){btn.parentNode.querySelectorAll('button').forEach
  items.forEach(el=>box.appendChild(el));}
 function cmp(title,list){return '<div class="tile" style="padding:15px 17px"><div class="cmp-t"><span>'+title+'</span><span class="pill">'+list.length+'</span></div>'+(list.length?grid(list):'<span class="empty">None</span>')+'</div>';}
 function listSection(name,kind,d,label,icn){const lid='l_'+name+'_'+kind;
- return '<div class="sec"><div class="sec-h">'+ic(icn)+'<div class="sec-t">'+label+'</div><span class="pill">'+d.current.count+'</span></div>'
+ return '<div class="sec" id="sec_'+name+'_'+kind+'"><div class="sec-h">'+ic(icn)+'<div class="sec-t">'+label+'</div><span class="pill">'+d.current.count+'</span></div>'
   +'<details><summary><div class="more">Show '+d.current.count+' &middot; '+label+' '+ic('chev')+'</div></summary>'
   +'<div class="sortbar">Sort<button class="on" onclick="sortList(this,\''+lid+'\',\'recent\')">Newest</button><button onclick="sortList(this,\''+lid+'\',\'az\')">A&ndash;Z</button></div>'
   +grid(d.current.usernames,lid)+'</details></div>';}
@@ -409,10 +426,10 @@ function panel(name){const t=DATA.targets[name],s=t.stats||{},disp=t.display||na
    +'<div class="psub">'+nf(s.following)+' following &middot; '+nf(s.followers)+' followers</div></div></div>'
    +'<div class="pf-mid"><div class="donut-wrap">'+donut(pct)+'<div class="donut-lbl"><b>'+nf(s.mutual)+'</b>mutual<br>follow-back</div></div>'+netH+'</div></div>';
  h+='<div class="strip">'
-  +statTile('Following',s.following,'userplus',t.following)
-  +statTile('Followers',s.followers,'users',t.followers)
-  +statTile('Mutual',s.mutual,'scale',null)
-  +statTile('One-way',fwBack,'trend',null)+'</div>';
+  +statTile('Following',s.following,'userplus',t.following,t.following?'sec_'+name+'_following':null)
+  +statTile('Followers',s.followers,'users',t.followers,t.followers?'sec_'+name+'_followers':null)
+  +statTile('Mutual',s.mutual,'scale',null,t.compare?'sec_'+name+'_rec':null)
+  +statTile('One-way',fwBack,'trend',null,t.compare?'sec_'+name+'_rec':null)+'</div>';
  // recent changes with filters
  h+='<div class="sec"><div class="sec-h">'+ic('trend')+'<div class="sec-t">Recent changes</div>'
    +'<div class="filters" data-host="'+name+'"><button class="on" onclick="filt(this,\''+name+'\',\'all\')">All</button><button onclick="filt(this,\''+name+'\',\'new\')">New</button><button onclick="filt(this,\''+name+'\',\'rem\')">Removed</button></div></div>';
@@ -421,7 +438,7 @@ function panel(name){const t=DATA.targets[name],s=t.stats||{},disp=t.display||na
  if(t.followers){h+='<div class="ml">In followers</div>'+timeline(t.followers,'followers');}
  h+='</div></div>';
  // reciprocity
- if(t.compare){const self=name==='self';h+='<div class="sec"><div class="sec-h">'+ic('scale')+'<div class="sec-t">Reciprocity</div></div><div class="two">'
+ if(t.compare){const self=name==='self';h+='<div class="sec" id="sec_'+name+'_rec"><div class="sec-h">'+ic('scale')+'<div class="sec-t">Reciprocity</div></div><div class="two">'
   +cmp(self?'You follow, they don&rsquo;t follow back':'@'+disp+' follows, they don&rsquo;t follow back',t.compare.not_following_back)
   +cmp(self?'They follow you, you don&rsquo;t follow back':'They follow @'+disp+', no follow back',t.compare.not_followed_back)+'</div></div>';}
  // lists + export

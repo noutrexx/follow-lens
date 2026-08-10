@@ -216,12 +216,24 @@ tailwind.config = {
  /* panel */
  .panel{@apply pb-20 pt-3.5;display:none;} .panel.on{@apply animate-rise;display:block;}
  /* bento */
- .bento{@apply grid gap-3;grid-template-columns:repeat(4,minmax(0,1fr));}
- @media(max-width:760px){.bento{grid-template-columns:repeat(2,minmax(0,1fr));}}
  .tile{@apply relative overflow-hidden rounded-md border border-line bg-surface px-4 py-3.5 transition-colors;}
  .tile:hover{@apply border-line2;}
- .b-prof{@apply flex flex-col;grid-column:1 / -1;}
- @media(max-width:760px){.b-prof{grid-column:1 / -1;}}
+ .b-prof{@apply mb-3 flex flex-col;}
+ /* one scan, drawn like a terminal pane */
+ .scan{@apply mb-3 overflow-hidden rounded-md border border-line bg-surface;}
+ .scan-h{@apply flex items-center gap-2.5 border-b border-line px-3.5 py-2.5 text-[12px] text-faint;}
+ .scan-h .lights i{@apply h-[9px] w-[9px];}
+ .scan-n{@apply ml-auto;} .scan-n b{@apply font-bold;}
+ .rows{@apply flex flex-col;}
+ /* the four counters as one divided strip */
+ .strip{@apply grid overflow-hidden rounded-md border border-line;grid-template-columns:repeat(4,minmax(0,1fr));}
+ .strip .tile{@apply rounded-none border-0 border-r border-line;}
+ .strip .tile:last-child{@apply border-r-0;}
+ @media(max-width:760px){
+  .strip{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .strip .tile:nth-child(2n){@apply border-r-0;}
+  .strip .tile:nth-child(-n+2){@apply border-b border-line;}
+ }
  .pf-top{@apply flex items-center gap-4;}
  .pav{@apply h-16 w-16 flex-none rounded-full p-[2.5px];background:var(--grad);}
  .pav>span{@apply flex h-full w-full items-center justify-center rounded-full text-[26px] font-bold uppercase;background:var(--av-bg);}
@@ -257,18 +269,11 @@ tailwind.config = {
  .filters button.on{@apply text-white;background:var(--grad);}
  .ml{@apply mb-2 mt-4 font-mono text-[10px] font-semibold uppercase tracking-[.14em] text-faint;}
  .card{@apply mb-2.5 rounded-md border border-line bg-surface px-4 py-3.5;}
- .tl{@apply relative pl-5;}
- .tl::before{content:'';@apply absolute bottom-2 left-[5px] top-2 w-px;background:var(--line2);}
- .tl .tdot{@apply absolute left-0 top-4 h-2.5 w-2.5 rounded-full;background:var(--grad);box-shadow:0 0 0 3px var(--bg);}
- .when{@apply mb-2 flex items-center gap-1.5 font-mono text-[11px] font-semibold text-faint;}
- .lg{@apply mb-1.5 mt-2.5 flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider;}
- .chips{@apply flex flex-col overflow-hidden rounded-md border border-line;}
- .chip{@apply flex w-full items-center gap-2.5 border-b border-line px-3 py-2 font-mono text-[13px] text-body transition-colors;}
+ .chip{@apply flex w-full items-center gap-2.5 border-b border-line px-3.5 py-2 font-mono text-[13px] text-body transition-colors;}
+ .chip .note{@apply ml-auto pl-3 text-[11px] text-faint;}
  .chip:last-child{@apply border-b-0;}
  .chip::before{@apply w-2.5 flex-none font-bold;}
  .chip.add{background:var(--green-bg);} .chip.add::before{content:'+';@apply text-add;}
- .chip.add::after{content:'new';@apply ml-auto pl-3 text-[11px] text-faint;}
- .chip.rem::after{content:'gone';@apply ml-auto pl-3 text-[11px] text-faint;}
  .chip.rem{background:var(--red-bg);} .chip.rem::before{content:'-';@apply text-del;}
  .chip:hover{background:var(--hover);}
  .two{@apply grid grid-cols-2 gap-2.5;} @media(max-width:760px){.two{@apply grid-cols-1;}}
@@ -367,13 +372,21 @@ function statTile(lbl,num,icn,d){
  return '<div class="tile st"><div class="top"><span class="lbl">'+lbl+'</span>'+ic(icn)+'</div>'
   +'<div class="num" data-v="'+(typeof num==='number'?num:0)+'">'+(typeof num==='number'?'0':num)+'</div>'
   +'<div class="row">'+delHtml(lastDelta(d))+spark(d?d.series:null)+'</div></div>';}
-function timeline(d,host){const items=d.history.slice(0,12);
+function timeline(d,kind){const items=d.history.slice(0,12);
  if(!items.length)return '<div class="card"><span class="empty">No changes yet &mdash; at least 2 scans are needed to compare.</span></div>';
- return items.map(h=>{let s='<div class="card tl" data-has="'+((h.added.length?'new ':'')+(h.removed.length?'rem':'')).trim()+'"><div class="tdot"></div><div class="when">'+ic('clock')+(h.at||'').replace('T',' ')+'</div>';
-  if(h.added.length)s+='<div class="lg up">'+ic('up')+'New &middot; '+h.added.length+'</div><div class="chips">'+h.added.map(u=>chip(u,'add')).join('')+'</div>';
-  if(h.removed.length)s+='<div class="lg down">'+ic('down')+'Removed &middot; '+h.removed.length+'</div><div class="chips">'+h.removed.map(u=>chip(u,'rem')).join('')+'</div>';
-  return s+'</div>';}).join('');}
-const chip=(u,c)=>'<a class="chip '+c+'" data-u="'+u+'" href="'+igl(u)+'" target="_blank">@'+u+'</a>';
+ const L=kind==='followers'?{a:'new follower',r:'unfollowed'}:{a:'now following',r:'stopped following'};
+ return items.map(h=>{
+  const has=((h.added.length?'new ':'')+(h.removed.length?'rem':'')).trim();
+  let s='<div class="scan" data-has="'+has+'"><div class="scan-h">'
+   +'<span class="lights"><i></i><i></i><i></i></span>'
+   +'<span class="scan-t">scan &middot; '+(h.at||'').replace('T',' ')+'</span><span class="scan-n">'
+   +(h.added.length?'<b class="up">+'+h.added.length+'</b>':'')
+   +(h.removed.length?' <b class="down">-'+h.removed.length+'</b>':'')+'</span></div><div class="rows">';
+  h.added.forEach(u=>{s+=row(u,'add',L.a);});
+  h.removed.forEach(u=>{s+=row(u,'rem',L.r);});
+  return s+'</div></div>';}).join('');}
+const row=(u,c,note)=>'<a class="chip '+c+'" data-u="'+u+'" href="'+igl(u)+'" target="_blank">'
+ +'<span class="usr">@'+u+'</span><span class="note">'+note+'</span></a>';
 function grid(list,id){return '<div class="ulist"'+(id?' id="'+id+'"':'')+'>'+list.map((u,i)=>'<a data-u="'+u+'" data-i="'+i+'" href="'+igl(u)+'" target="_blank"><span class="gm">'+ini(u)+'</span>@'+u+'</a>').join('')+'</div>';}
 function sortList(btn,id,mode){btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
  const box=document.getElementById(id);if(!box)return;const items=[...box.children];
@@ -391,22 +404,21 @@ function panel(name){const t=DATA.targets[name],s=t.stats||{},disp=t.display||na
  const net=netChange(t.followers);
  let netH='<div class="net"><div class="nl">net followers</div><div class="nv '+(net>0?'up':net<0?'down':'')+'">'+(net==null?'&ndash;':(net>0?'+':'')+net)+'</div></div>';
  // bento
- let h='<div class="bento">';
- h+='<div class="tile b-prof"><div class="pf-top"><div class="pav"><span>'+ini(disp)+'</span></div>'
+ let h='<div class="tile b-prof"><div class="pf-top"><div class="pav"><span>'+ini(disp)+'</span></div>'
    +'<div><div class="pname"><a href="'+igl(disp)+'" target="_blank">@'+disp+'</a></div>'
    +'<div class="psub">'+nf(s.following)+' following &middot; '+nf(s.followers)+' followers</div></div></div>'
    +'<div class="pf-mid"><div class="donut-wrap">'+donut(pct)+'<div class="donut-lbl"><b>'+nf(s.mutual)+'</b>mutual<br>follow-back</div></div>'+netH+'</div></div>';
- h+=statTile('Following',s.following,'userplus',t.following);
- h+=statTile('Followers',s.followers,'users',t.followers);
- h+=statTile('Mutual',s.mutual,'scale',null);
- h+=statTile('One-way',fwBack,'trend',null);
- h+='</div>';
+ h+='<div class="strip">'
+  +statTile('Following',s.following,'userplus',t.following)
+  +statTile('Followers',s.followers,'users',t.followers)
+  +statTile('Mutual',s.mutual,'scale',null)
+  +statTile('One-way',fwBack,'trend',null)+'</div>';
  // recent changes with filters
  h+='<div class="sec"><div class="sec-h">'+ic('trend')+'<div class="sec-t">Recent changes</div>'
    +'<div class="filters" data-host="'+name+'"><button class="on" onclick="filt(this,\''+name+'\',\'all\')">All</button><button onclick="filt(this,\''+name+'\',\'new\')">New</button><button onclick="filt(this,\''+name+'\',\'rem\')">Removed</button></div></div>';
  h+='<div id="tl_'+name+'">';
- if(t.following){h+='<div class="ml">In following</div>'+timeline(t.following);}
- if(t.followers){h+='<div class="ml">In followers</div>'+timeline(t.followers);}
+ if(t.following){h+='<div class="ml">In following</div>'+timeline(t.following,'following');}
+ if(t.followers){h+='<div class="ml">In followers</div>'+timeline(t.followers,'followers');}
  h+='</div></div>';
  // reciprocity
  if(t.compare){const self=name==='self';h+='<div class="sec"><div class="sec-h">'+ic('scale')+'<div class="sec-t">Reciprocity</div></div><div class="two">'
@@ -433,7 +445,7 @@ function countUp(panel){panel.querySelectorAll('.num[data-v]').forEach(el=>{cons
  (function step(t){const p=Math.min(1,(t-t0)/750),e=1-Math.pow(1-p,3);el.textContent=nf(Math.round(tgt*e));if(p<1)requestAnimationFrame(step);})(performance.now());});}
 function animDonut(panel){panel.querySelectorAll('.d-fg').forEach(c=>{requestAnimationFrame(()=>{c.style.strokeDashoffset=c.dataset.off;});});}
 function filt(btn,name,mode){btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
- document.querySelectorAll('#tl_'+name+' .tl').forEach(c=>{const h=c.dataset.has||'';c.classList.toggle('hidden',mode!=='all'&&!h.includes(mode));});}
+ document.querySelectorAll('#tl_'+name+' [data-has]').forEach(c=>{const h=c.dataset.has||'';c.classList.toggle('hidden',mode!=='all'&&!h.includes(mode));});}
 function gsearch(q){q=q.trim().toLowerCase();const p=document.querySelector('.panel.on');if(!p)return;
  if(q)p.querySelectorAll('details').forEach(d=>d.open=true);
  p.querySelectorAll('[data-u]').forEach(a=>{a.style.display=(!q||a.dataset.u.toLowerCase().includes(q))?'':'none';});}

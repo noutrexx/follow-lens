@@ -125,10 +125,11 @@ tailwind.config = {
       keyframes: {
         drift2: { '50%': { transform: 'translate(-50px,30px) scale(1.08)' } },
         drift3: { '50%': { transform: 'translate(40px,-30px) scale(1.12)' } },
+        blink:  { '0%,92%,100%': { transform: 'scaleY(1)' }, '96%': { transform: 'scaleY(.12)' } },
         rise:   { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'none' } },
         pulseRing: { '0%': { boxShadow: '0 0 0 0 rgba(40,209,126,.55)' }, '70%': { boxShadow: '0 0 0 7px rgba(40,209,126,0)' }, '100%': { boxShadow: '0 0 0 0 rgba(40,209,126,0)' } },
       },
-      animation: { rise: 'rise .3s cubic-bezier(.2,.7,.3,1)',
+      animation: { rise: 'rise .3s cubic-bezier(.2,.7,.3,1)', blink: 'blink 6s ease-in-out infinite',
         pulseRing: 'pulseRing 2.4s infinite',
       },
     },
@@ -177,7 +178,8 @@ tailwind.config = {
  .bar-in{@apply flex h-14 items-center gap-3.5;}
  .brand{@apply flex cursor-default items-center gap-2.5;}
  .mark{@apply grid h-[22px] w-[22px] flex-none place-items-center overflow-hidden rounded-md;background:var(--grad);}
- .mark svg{@apply h-[15px] w-[15px];}
+ .mark svg{@apply h-[15px] w-[15px] animate-blink [transform-origin:center] [transform-box:fill-box];}
+ .brand:hover .mark svg{animation:none;transform:scaleY(.55);transition:transform .18s;}
  .wm-t{@apply text-[13.5px] font-bold tracking-tight;}
  .wm-t .path{@apply ml-2 font-normal text-faint;}
  .gsearch{@apply relative mx-auto max-w-[320px] flex-1;}

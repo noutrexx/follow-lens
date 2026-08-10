@@ -121,15 +121,12 @@ tailwind.config = {
       },
       maxWidth: { shell: '58rem' },
       keyframes: {
-        drift1: { '50%': { transform: 'translate(60px,40px) scale(1.1)' } },
         drift2: { '50%': { transform: 'translate(-50px,30px) scale(1.08)' } },
         drift3: { '50%': { transform: 'translate(40px,-30px) scale(1.12)' } },
         rise:   { from: { opacity: '0', transform: 'translateY(8px)' }, to: { opacity: '1', transform: 'none' } },
         pulseRing: { '0%': { boxShadow: '0 0 0 0 rgba(40,209,126,.55)' }, '70%': { boxShadow: '0 0 0 7px rgba(40,209,126,0)' }, '100%': { boxShadow: '0 0 0 0 rgba(40,209,126,0)' } },
       },
-      animation: {
-        drift1: 'drift1 24s ease-in-out infinite', drift2: 'drift2 28s ease-in-out infinite',
-        drift3: 'drift3 32s ease-in-out infinite', rise: 'rise .3s cubic-bezier(.2,.7,.3,1)',
+      animation: { rise: 'rise .3s cubic-bezier(.2,.7,.3,1)',
         pulseRing: 'pulseRing 2.4s infinite',
       },
     },
@@ -145,9 +142,8 @@ tailwind.config = {
   --green:#28d17e;--green-bg:rgba(40,209,126,.09);--red:#ff4d6d;--red-bg:rgba(255,77,109,.09);
   --accent:#e0578d;--grad:linear-gradient(135deg,#d6376f,#b52a63);
   --r:14px;--r-s:9px;--r-xs:6px;
-  --bar-bg:rgba(8,8,12,.8);--grid-line:rgba(255,255,255,.022);
+  --bar-bg:rgba(8,8,12,.8);
   --track:rgba(255,255,255,.08);--av-bg:#0d0d13;--av-chip:rgba(255,255,255,.14);
-  --wm-c:#fff;--wm-o:.03;--blob-o1:.10;
   --on-grad:#fff;--ring:rgba(255,107,156,.18);
  }
  :root[data-theme="light"]{
@@ -157,37 +153,30 @@ tailwind.config = {
   --line:rgba(16,16,28,.11);--line2:rgba(16,16,28,.2);
   --green:#0a8f52;--green-bg:rgba(10,143,82,.1);--red:#d31f43;--red-bg:rgba(211,31,67,.08);
   --accent:#b52a63;
-  --bar-bg:rgba(247,247,250,.82);--grid-line:rgba(16,16,28,.035);
+  --bar-bg:rgba(247,247,250,.82);
   --track:rgba(16,16,28,.09);--av-bg:#fff;--av-chip:rgba(16,16,28,.08);
-  --wm-c:#15151c;--wm-o:.035;--blob-o1:.08;
   --ring:rgba(194,24,91,.18);
  }
  html,body{@apply m-0;}
- body{@apply bg-page font-sans text-[15px] leading-normal text-body antialiased selection:bg-brand-pink/40;}
+ body{@apply bg-page font-mono text-[13.5px] leading-relaxed text-body antialiased;}
+ ::selection{background:var(--green-bg);}
  a{@apply text-inherit no-underline;}
  .mono{@apply font-mono;}
  /* ambient background */
- .bgfx{@apply pointer-events-none fixed inset-0 -z-20 overflow-hidden;}
- .blob{@apply absolute rounded-full blur-[95px] will-change-transform;}
- .b1{@apply h-[560px] w-[560px] -left-36 -top-52 animate-drift1;background:#d81b60;opacity:var(--blob-o1);}
- .wm{@apply absolute;color:var(--wm-c);stroke:var(--wm-c);opacity:var(--wm-o);}
- .wm-eye{@apply h-[640px] w-[640px] -right-40 -bottom-44;}
- .wm-ring{@apply h-[500px] w-[500px] -left-44 top-[42%];opacity:calc(var(--wm-o) * .83);}
- .grid-ov{@apply pointer-events-none fixed inset-0 -z-10 bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_75%_55%_at_50%_0%,#000_30%,transparent_75%)];
-  background-image:linear-gradient(var(--grid-line) 1px,transparent 1px),linear-gradient(90deg,var(--grid-line) 1px,transparent 1px);}
  .wrap{@apply mx-auto max-w-shell px-5;}
  /* top bar */
  .bar{@apply sticky top-0 z-40 border-b border-line backdrop-blur-xl;background:var(--bar-bg);}
+ .lights{@apply flex flex-none items-center gap-1.5 pr-1;}
+ .lights i{@apply block h-[11px] w-[11px] rounded-full;}
+ .lights i:nth-child(1){background:#ff5f57;} .lights i:nth-child(2){background:#febc2e;} .lights i:nth-child(3){background:#28c840;}
  .bar-in{@apply flex h-14 items-center gap-3.5;}
  .brand{@apply flex cursor-default items-center gap-2.5;}
- .mark{@apply grid h-8 w-8 flex-none place-items-center rounded-[10px] shadow-lg shadow-brand-pink/25 transition;background:var(--grad);}
- .brand:hover .mark{@apply -rotate-6 scale-105;}
- .mark svg{@apply h-4 w-4 fill-none stroke-white stroke-[1.9];}
- .mark .pupil{@apply origin-center transition;} .brand:hover .mark .pupil{@apply scale-50;}
- .wm-t{@apply text-[17px] font-black tracking-tight;}
- .wm-t small{@apply ml-2 font-mono text-[10px] font-semibold uppercase tracking-[.16em] text-faint;}
+ .mark{@apply grid h-[22px] w-[22px] flex-none place-items-center overflow-hidden rounded-md;background:var(--grad);}
+ .mark svg{@apply h-[15px] w-[15px];}
+ .wm-t{@apply text-[13.5px] font-bold tracking-tight;}
+ .wm-t .path{@apply ml-2 font-normal text-faint;}
  .gsearch{@apply relative mx-auto max-w-[320px] flex-1;}
- .gsearch input{@apply w-full rounded-lg border border-line bg-surface2 py-2 pl-9 pr-3 font-sans text-[13px] text-body outline-none transition;}
+ .gsearch input{@apply w-full rounded-md border border-line bg-surface2 py-1.5 pl-9 pr-3 font-mono text-[13px] text-body outline-none transition;}
  .gsearch input:focus{@apply border-accent;box-shadow:0 0 0 3px var(--ring);}
  .gsearch input::placeholder{@apply text-faint;}
  .gsearch .si{@apply absolute left-3 top-1/2 -translate-y-1/2 text-faint;} .gsearch .si svg{@apply h-[15px] w-[15px];}
@@ -196,7 +185,7 @@ tailwind.config = {
  .live{@apply flex items-center gap-2 rounded-full border border-line bg-surface2 px-2.5 py-1.5 font-mono text-[11px] text-muted;}
  .dot{@apply h-[7px] w-[7px] animate-pulseRing rounded-full;background:var(--green);}
  .ghub{@apply flex text-muted transition-colors hover:text-body;} .ghub svg{@apply h-[18px] w-[18px];}
- .btn{@apply inline-flex cursor-pointer items-center gap-2 rounded-lg border-0 px-4 py-2 font-sans text-[13px] font-bold text-white shadow-lg shadow-brand-pink/25 transition;background:var(--grad);}
+ .btn{@apply inline-flex cursor-pointer items-center gap-2 rounded-md border-0 px-3.5 py-1.5 font-mono text-[12.5px] font-bold text-white transition;background:var(--grad);}
  .btn:hover{@apply brightness-110;} .btn:disabled{@apply cursor-default opacity-50 shadow-none;}
  .btn svg{@apply h-[15px] w-[15px] fill-none stroke-white stroke-2;} .btn.spin svg{@apply animate-spin;}
  .ic{@apply inline-flex items-center justify-center;}
@@ -221,16 +210,16 @@ tailwind.config = {
  /* panel */
  .panel{@apply pb-20 pt-3.5;display:none;} .panel.on{@apply animate-rise;display:block;}
  /* bento */
- .bento{@apply grid grid-cols-4 gap-3;grid-auto-rows:minmax(96px,1fr);}
- @media(max-width:760px){.bento{@apply grid-cols-2;}}
- .tile{@apply relative overflow-hidden rounded-xl border border-line bg-surface px-4 py-4 transition-colors;}
+ .bento{@apply grid gap-3;grid-template-columns:repeat(4,minmax(0,1fr));}
+ @media(max-width:760px){.bento{grid-template-columns:repeat(2,minmax(0,1fr));}}
+ .tile{@apply relative overflow-hidden rounded-md border border-line bg-surface px-4 py-3.5 transition-colors;}
  .tile:hover{@apply border-line2;}
- .b-prof{@apply col-span-2 row-span-2 flex flex-col;}
- @media(max-width:760px){.b-prof{@apply col-span-2 row-span-1;}}
+ .b-prof{@apply flex flex-col;grid-column:1 / -1;}
+ @media(max-width:760px){.b-prof{grid-column:1 / -1;}}
  .pf-top{@apply flex items-center gap-4;}
  .pav{@apply h-16 w-16 flex-none rounded-full p-[2.5px];background:var(--grad);}
  .pav>span{@apply flex h-full w-full items-center justify-center rounded-full text-[26px] font-bold uppercase;background:var(--av-bg);}
- .pname{@apply text-xl font-extrabold tracking-tight;} .pname a:hover{@apply opacity-85;}
+ .pname{@apply font-mono text-lg font-bold tracking-tight;} .pname a:hover{@apply opacity-85;}
  .psub{@apply mt-0.5 font-mono text-[12px] text-muted;}
  .pf-mid{@apply mt-auto flex items-center gap-4 pt-4;}
  .donut-wrap{@apply flex items-center gap-3;}
@@ -244,7 +233,7 @@ tailwind.config = {
  /* stat tile */
  .st .top{@apply flex items-center justify-between text-muted;}
  .st .lbl{@apply font-mono text-[10px] font-semibold uppercase tracking-[.12em];} .st .ic{@apply text-faint;}
- .st .num{@apply mt-2 text-[25px] font-extrabold leading-none tracking-tight [font-feature-settings:'tnum'];}
+ .st .num{@apply mt-2 font-mono text-[24px] font-bold leading-none tracking-tight [font-feature-settings:'tnum'];}
  .st .row{@apply mt-1.5 flex items-end justify-between gap-2;}
  .st .dl{@apply flex items-center gap-1 font-mono text-[10px] font-semibold text-faint;}
  .up{@apply text-add;} .down{@apply text-del;} .up svg,.down svg{@apply h-[11px] w-[11px] stroke-[2.6];}
@@ -254,29 +243,34 @@ tailwind.config = {
  /* sections */
  .sec{@apply mt-8;} .sec-h{@apply mb-3.5 flex items-center gap-2.5;}
  .sec-t{@apply font-mono text-[11px] font-bold uppercase tracking-[.18em] text-muted;}
+ .sec-t::before{content:'# ';@apply text-faint;}
  .sec-h .ic{@apply text-faint;}
  .pill{@apply rounded border border-line bg-surface2 px-2 font-mono text-[11px] font-semibold text-muted;}
  .filters{@apply ml-auto inline-flex gap-1 rounded-lg border border-line bg-surface p-[3px];}
  .filters button{@apply cursor-pointer rounded-md border-0 bg-transparent px-2.5 py-1 font-sans text-xs font-semibold text-muted transition;}
  .filters button.on{@apply text-white;background:var(--grad);}
  .ml{@apply mb-2 mt-4 font-mono text-[10px] font-semibold uppercase tracking-[.14em] text-faint;}
- .card{@apply mb-2.5 rounded-xl border border-line bg-surface px-4 py-4;}
+ .card{@apply mb-2.5 rounded-md border border-line bg-surface px-4 py-3.5;}
  .tl{@apply relative pl-5;}
  .tl::before{content:'';@apply absolute bottom-2 left-[5px] top-2 w-px;background:var(--line2);}
  .tl .tdot{@apply absolute left-0 top-4 h-2.5 w-2.5 rounded-full;background:var(--grad);box-shadow:0 0 0 3px var(--bg);}
  .when{@apply mb-2 flex items-center gap-1.5 font-mono text-[11px] font-semibold text-faint;}
  .lg{@apply mb-1.5 mt-2.5 flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase tracking-wider;}
- .chips{@apply flex flex-wrap gap-1.5;}
- .chip{@apply inline-flex items-center rounded-md border border-transparent px-2.5 py-1 font-mono text-[12.5px] transition;}
- .chip.add{@apply text-add;background:var(--green-bg);border-color:var(--green-bg);}
- .chip.rem{@apply text-del;background:var(--red-bg);border-color:var(--red-bg);}
- .chip:hover{@apply brightness-125;}
+ .chips{@apply flex flex-col overflow-hidden rounded-md border border-line;}
+ .chip{@apply flex w-full items-center gap-2.5 border-b border-line px-3 py-2 font-mono text-[13px] text-body transition-colors;}
+ .chip:last-child{@apply border-b-0;}
+ .chip::before{@apply w-2.5 flex-none font-bold;}
+ .chip.add{background:var(--green-bg);} .chip.add::before{content:'+';@apply text-add;}
+ .chip.add::after{content:'new';@apply ml-auto pl-3 text-[11px] text-faint;}
+ .chip.rem::after{content:'gone';@apply ml-auto pl-3 text-[11px] text-faint;}
+ .chip.rem{background:var(--red-bg);} .chip.rem::before{content:'-';@apply text-del;}
+ .chip:hover{background:var(--hover);}
  .two{@apply grid grid-cols-2 gap-2.5;} @media(max-width:760px){.two{@apply grid-cols-1;}}
  .cmp-t{@apply mb-3 flex items-center justify-between gap-2.5 text-[13px] font-bold;}
- .grid{@apply flex flex-wrap gap-1.5;}
- .grid a{@apply inline-flex items-center gap-2 rounded-lg border border-line bg-surface2 py-1 pl-1.5 pr-3 text-[13px] transition;}
- .grid a:hover{@apply border-line2;background:var(--hover);}
- .grid .gm{@apply flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold uppercase text-white;background:var(--grad);}
+ .ulist{@apply flex flex-wrap gap-1.5;}
+ .ulist a{@apply inline-flex items-center gap-2 rounded border border-line bg-surface2 py-1 pl-1.5 pr-2.5 font-mono text-[12.5px] transition;}
+ .ulist a:hover{@apply border-line2;background:var(--hover);}
+ .ulist .gm{@apply flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold uppercase text-white;background:var(--grad);}
  .empty{@apply text-[13px] italic text-faint;}
  details{@apply mt-1.5;} summary{@apply cursor-pointer list-none;} summary::-webkit-details-marker{display:none;}
  .more{@apply inline-flex items-center gap-1.5 py-1.5 text-[13px] font-bold text-accent;}
@@ -288,7 +282,8 @@ tailwind.config = {
  .sec-act{@apply ml-auto inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-line bg-surface px-2.5 py-1 text-xs font-semibold text-muted transition;}
  .sec-act:hover{@apply border-line2 text-body;} .sec-act svg{@apply h-3 w-3;}
  .hidden{@apply !hidden;}
- footer{@apply py-8 text-center font-mono text-[11px] text-faint;}
+ footer{@apply border-t border-line py-6 text-center font-mono text-[11px] text-faint;}
+ footer .prompt{@apply text-add;}
  footer b{@apply bg-clip-text font-bold text-transparent;background:var(--grad);}
  /* compare */
  .cmp-bar{@apply my-4 flex flex-wrap items-center gap-2.5;}
@@ -297,7 +292,7 @@ tailwind.config = {
  .cmp-bar select:focus{@apply border-accent;}
  .cmp-bar .vs{@apply font-mono text-[11px] font-bold uppercase tracking-[.18em] text-faint;}
  .venns{@apply grid grid-cols-2 gap-3;} @media(max-width:760px){.venns{@apply grid-cols-1;}}
- .venn-card{@apply rounded-xl border border-line bg-surface px-4 py-4;}
+ .venn-card{@apply rounded-md border border-line bg-surface px-4 py-3.5;}
  .venn svg{@apply mt-1 block h-[148px] w-full;}
  .venn .vn{@apply font-mono font-extrabold [text-anchor:middle];fill:var(--text);}
  .venn .vl{@apply text-[11px] font-semibold [text-anchor:middle];fill:var(--muted);}
@@ -313,20 +308,17 @@ tailwind.config = {
  @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
    transition-duration:.01ms!important;scroll-behavior:auto!important;}
-  .blob,.dot{animation:none;}
+  .dot{animation:none;}
  }
 </style></head><body>
 <svg width="0" height="0" style="position:absolute"><defs>
  <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0578d"/><stop offset="1" stop-color="#b52a63"/></linearGradient>
  <linearGradient id="sparkg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6376f" stop-opacity=".4"/><stop offset="1" stop-color="#d6376f" stop-opacity="0"/></linearGradient>
 </defs></svg>
-<div class="bgfx"><div class="blob b1"></div>
- <svg class="wm wm-eye" viewBox="0 0 24 24" fill="none" stroke-width=".5"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>
- <svg class="wm wm-ring" viewBox="0 0 24 24" fill="none" stroke-width=".4"><circle cx="12" cy="12" r="11"/><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="4"/></svg>
-</div><div class="grid-ov"></div>
 <div class="bar"><div class="wrap bar-in">
- <div class="brand"><div class="mark"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle class="pupil" cx="12" cy="12" r="3"/></svg></div><div class="wm-t">FollowLens<small>IG ANALYTICS</small></div></div>
- <div class="gsearch"><span class="si ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></span><input id="gs" placeholder="Search any username..." oninput="gsearch(this.value)"><kbd>/</kbd></div>
+ <div class="lights"><i></i><i></i><i></i></div>
+ <div class="brand"><div class="mark"><svg viewBox='0 0 32 32'><path fill-rule='evenodd' fill='#fff' d='M16 8.4c5.3 0 9.6 3.3 11.6 7.6-2 4.3-6.3 7.6-11.6 7.6S6.4 20.3 4.4 16C6.4 11.7 10.7 8.4 16 8.4Zm0 4.3a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Z'/></svg></div><div class="wm-t">followlens<span class="path">~/dashboard</span></div></div>
+ <div class="gsearch"><span class="si ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></span><input id="gs" placeholder="grep username&hellip;" oninput="gsearch(this.value)"><kbd>/</kbd></div>
  <div class="right">
   <div class="live"><span class="dot"></span>Updated <b id="upd">__GEN__</b></div>
   <button class="tgl" id="tg" onclick="toggleTheme()" title="Switch theme (T)" aria-label="Switch colour theme"><svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg><svg class="moon" viewBox="0 0 24 24"><path d="M20.5 14.3A8.6 8.6 0 0 1 9.7 3.5a8.6 8.6 0 1 0 10.8 10.8z"/></svg></button>
@@ -335,7 +327,7 @@ tailwind.config = {
  </div>
 </div></div>
 <div class="wrap"><div class="accts" id="accts"></div><div id="main"></div>
- <footer>built with <b>FollowLens</b> &middot; private &middot; self-hosted &middot; data stays on your machine</footer>
+ <footer><span class="prompt">$</span> <b>followlens</b> &middot; local only &middot; no data leaves this machine</footer>
 </div>
 <script>
 const DATA=__DATA__;
@@ -376,7 +368,7 @@ function timeline(d,host){const items=d.history.slice(0,12);
   if(h.removed.length)s+='<div class="lg down">'+ic('down')+'Removed &middot; '+h.removed.length+'</div><div class="chips">'+h.removed.map(u=>chip(u,'rem')).join('')+'</div>';
   return s+'</div>';}).join('');}
 const chip=(u,c)=>'<a class="chip '+c+'" data-u="'+u+'" href="'+igl(u)+'" target="_blank">@'+u+'</a>';
-function grid(list,id){return '<div class="grid"'+(id?' id="'+id+'"':'')+'>'+list.map((u,i)=>'<a data-u="'+u+'" data-i="'+i+'" href="'+igl(u)+'" target="_blank"><span class="gm">'+ini(u)+'</span>@'+u+'</a>').join('')+'</div>';}
+function grid(list,id){return '<div class="ulist"'+(id?' id="'+id+'"':'')+'>'+list.map((u,i)=>'<a data-u="'+u+'" data-i="'+i+'" href="'+igl(u)+'" target="_blank"><span class="gm">'+ini(u)+'</span>@'+u+'</a>').join('')+'</div>';}
 function sortList(btn,id,mode){btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
  const box=document.getElementById(id);if(!box)return;const items=[...box.children];
  if(mode==='az')items.sort((a,b)=>a.dataset.u.localeCompare(b.dataset.u));else items.sort((a,b)=>(+a.dataset.i)-(+b.dataset.i));

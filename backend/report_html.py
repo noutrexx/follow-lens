@@ -238,6 +238,8 @@ tailwind.config = {
   .strip{grid-template-columns:repeat(2,minmax(0,1fr));}
   .strip .tile:nth-child(2n){@apply border-r-0;}
   .strip .tile:nth-child(-n+2){@apply border-b border-line;}
+  .spark{@apply hidden;}
+  .sec-t{@apply text-[10px];}
  }
  .pf-top{@apply flex items-center gap-4;}
  .pav{@apply h-16 w-16 flex-none rounded-full p-[2.5px];background:var(--grad);}
@@ -258,13 +260,13 @@ tailwind.config = {
  .st .lbl{@apply font-mono text-[10px] font-semibold uppercase tracking-[.12em];} .st .ic{@apply text-faint;}
  .st .num{@apply mt-2 font-mono text-[24px] font-bold leading-none tracking-tight [font-feature-settings:'tnum'];}
  .st .row{@apply mt-1.5 flex items-end justify-between gap-2;}
- .st .dl{@apply flex items-center gap-1 font-mono text-[10px] font-semibold text-faint;}
+ .st .dl{@apply flex items-center gap-1 whitespace-nowrap font-mono text-[10px] font-semibold text-faint;}
  .up{@apply text-add;} .down{@apply text-del;} .up svg,.down svg{@apply h-[11px] w-[11px] stroke-[2.6];}
- .spark{@apply h-[26px] w-[74px];}
+ .spark{@apply h-[26px] w-[74px] max-w-[50%] flex-none;}
  .spark .sp-line{fill:none;stroke:url(#grad);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
  .spark .sp-area{fill:url(#sparkg);opacity:.4;stroke:none;}
  /* sections */
- .sec{@apply mt-8;scroll-margin-top:72px;} .sec-h{@apply mb-3.5 flex items-center gap-2.5;}
+ .sec{@apply mt-8;scroll-margin-top:72px;} .sec-h{@apply mb-3.5 flex flex-wrap items-center gap-2.5;}
  .sec-t{@apply font-mono text-[11px] font-bold uppercase tracking-[.18em] text-muted;}
  .sec-t::before{content:'# ';@apply text-faint;}
  .sec-h .ic{@apply text-faint;}

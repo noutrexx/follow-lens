@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
+from itertools import pairwise
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,7 +15,8 @@ def _load(td: Path, kind: str) -> list[dict]:
     snaps = []
     for fp in sorted(td.glob(f"{kind}_*.json")):
         try:
-            snaps.append(json.load(open(fp, encoding="utf-8")))
+            with open(fp, encoding="utf-8") as f:
+                snaps.append(json.load(f))
         except Exception:  # noqa: BLE001
             pass
     return snaps
@@ -26,7 +28,7 @@ def _build_kind(snaps: list[dict]) -> dict | None:
     history, series = [], []
     for s in snaps:
         series.append({"at": s.get("captured_at"), "count": s.get("count", len(s.get("users", {})))})
-    for prev, cur in zip(snaps, snaps[1:]):
+    for prev, cur in pairwise(snaps):
         pu, cu = prev.get("users", {}), cur.get("users", {})
         pi, ci = set(pu), set(cu)
         added = sorted(cu[i] for i in (ci - pi))
@@ -48,8 +50,8 @@ def _latest_users(td: Path, kind: str) -> dict:
 
 def collect_data() -> dict:
     try:
-        cfg = json.load(open(ROOT / "config.json", encoding="utf-8"))
-        self_username = cfg.get("username", "self")
+        with open(ROOT / "config.json", encoding="utf-8") as f:
+            self_username = json.load(f).get("username", "self")
     except Exception:  # noqa: BLE001
         self_username = "self"
     targets = {}

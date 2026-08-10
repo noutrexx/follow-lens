@@ -15,7 +15,8 @@ LAST_SCAN = ROOT / "data" / ".last_scan"
 
 
 def load_config() -> dict:
-    return json.load(open(ROOT / "config.json", encoding="utf-8"))
+    with open(ROOT / "config.json", encoding="utf-8") as f:
+        return json.load(f)
 
 
 def _read_last() -> float:

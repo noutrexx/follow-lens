@@ -2,6 +2,8 @@
 line-length = 100
 target-version = "py310"
 
-[tool.ruff.lint.per-file-ignores]
-"tests/*" = ["E402"]
-"run.py" = ["E402"]
+[tool.ruff.lint]
+# Pinned explicitly: relying on ruff's defaults means a new release can fail CI
+# on code that never changed. The inline noqa comments cover the rest.
+# E4/E7/E9 rather than all of E: the HTML template legitimately has long lines.
+select = ["E4", "E7", "E9", "F", "I", "UP", "B", "BLE", "SIM", "RUF"]

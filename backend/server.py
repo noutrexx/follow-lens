@@ -10,10 +10,9 @@ import json
 import threading
 from pathlib import Path
 
-from flask import Flask, jsonify, request, send_file, send_from_directory
-
 import report_html
 import scanner
+from flask import Flask, jsonify, request, send_file, send_from_directory
 
 ROOT = Path(__file__).resolve().parents[1]      # repo root
 FRONTEND = ROOT / "frontend"
@@ -69,8 +68,8 @@ def health():
 
 
 def main() -> None:
-    cfg = json.load(open(ROOT / "config.json", encoding="utf-8"))
-    port = int(cfg.get("port", 5005))
+    with open(ROOT / "config.json", encoding="utf-8") as f:
+        port = int(json.load(f).get("port", 5005))
     if not (FRONTEND / "viewer.html").exists():
         report_html.generate()
     print(f"\n  FollowLens running:\n    landing   http://localhost:{port}\n    dashboard http://localhost:{port}/dashboard\n")

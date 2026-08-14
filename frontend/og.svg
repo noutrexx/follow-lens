@@ -1,36 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#0b0b0f"/><stop offset="1" stop-color="#16101a"/>
+      <stop offset="0" stop-color="#08080c"/><stop offset="1" stop-color="#12101a"/>
     </linearGradient>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f9a825"/><stop offset=".34" stop-color="#f4511e"/>
-      <stop offset=".64" stop-color="#d81b60"/><stop offset="1" stop-color="#8e24aa"/>
+      <stop offset="0" stop-color="#e0578d"/><stop offset="1" stop-color="#b52a63"/>
     </linearGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#bg)"/>
-  <circle cx="980" cy="140" r="300" fill="#d81b60" opacity="0.16"/>
-  <circle cx="200" cy="560" r="280" fill="#8e24aa" opacity="0.13"/>
-  <g transform="translate(110,150)">
-    <rect width="92" height="92" rx="22" fill="url(#g)"/>
-    <g transform="translate(46,46)" fill="none" stroke="#fff" stroke-width="4.5">
-      <path d="M-30 0s12-20 30-20 30 20 30 20-12 20-30 20-30-20-30-20z"/>
-      <circle cx="0" cy="0" r="8.5" fill="#fff" stroke="none"/>
+  <circle cx="980" cy="120" r="300" fill="#d6376f" opacity="0.10"/>
+
+  <!-- mark: the same solid eye used for the favicon and the header -->
+  <g transform="translate(110,132)">
+    <rect width="84" height="84" rx="21" fill="url(#g)"/>
+    <g transform="translate(42,42) scale(2.35)" fill="#fff" fill-rule="evenodd">
+      <path d="M0-7.6c5.3 0 9.6 3.3 11.6 7.6-2 4.3-6.3 7.6-11.6 7.6S-9.6 4.3-11.6 0C-9.6-4.3-5.3-7.6 0-7.6Zm0 4.3a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Z"/>
     </g>
   </g>
-  <text x="230" y="200" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="88" font-weight="800" fill="#f4f4f6" letter-spacing="-2">stalker</text>
-  <text x="232" y="248" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#9090a0" letter-spacing="6">IG ANALYTICS</text>
-  <text x="112" y="360" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="44" font-weight="700" fill="#f4f4f6">Track followers, mutuals &amp; unfollowers</text>
-  <text x="112" y="418" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="28" font-weight="500" fill="#9090a0">Private &middot; self-hosted &middot; full change history &middot; bento dashboard</text>
-  <g transform="translate(112,470)" font-family="Inter,Segoe UI,Arial,sans-serif">
-    <rect width="190" height="92" rx="14" fill="#ffffff" opacity="0.05"/>
-    <text x="20" y="40" font-size="20" font-weight="600" fill="#9090a0">Mutual</text>
-    <text x="20" y="78" font-size="34" font-weight="800" fill="#28d17e">478</text>
-    <rect x="210" width="190" height="92" rx="14" fill="#ffffff" opacity="0.05"/>
-    <text x="230" y="40" font-size="20" font-weight="600" fill="#9090a0">Following</text>
-    <text x="230" y="78" font-size="34" font-weight="800" fill="#f4f4f6">612</text>
-    <rect x="420" width="190" height="92" rx="14" fill="#ffffff" opacity="0.05"/>
-    <text x="440" y="40" font-size="20" font-weight="600" fill="#9090a0">One-way</text>
-    <text x="440" y="78" font-size="34" font-weight="800" fill="#ff4d6d">134</text>
+  <text x="216" y="188" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="52" font-weight="700" fill="#f4f4f6">followlens</text>
+
+  <text x="112" y="304" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="46" font-weight="700" fill="#f4f4f6">Your follower list, as a diff.</text>
+  <text x="112" y="356" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="24" font-weight="400" fill="#9090a0">Self-hosted &#183; no password &#183; every scan is a snapshot</text>
+
+  <!-- a scan pane, the way the dashboard draws one -->
+  <g transform="translate(112,404)">
+    <rect width="976" height="150" rx="12" fill="#ffffff" opacity="0.035"/>
+    <rect width="976" height="150" rx="12" fill="none" stroke="#ffffff" stroke-opacity="0.10"/>
+    <circle cx="26" cy="26" r="5.5" fill="#ff5f57"/>
+    <circle cx="44" cy="26" r="5.5" fill="#febc2e"/>
+    <circle cx="62" cy="26" r="5.5" fill="#28c840"/>
+    <text x="86" y="32" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="19" fill="#5d5d70">scan &#183; 12 Jun 09:41</text>
+    <text x="950" y="32" text-anchor="end" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="19" fill="#5d5d70">+2 -1</text>
+    <line x1="0" y1="52" x2="976" y2="52" stroke="#ffffff" stroke-opacity="0.10"/>
+
+    <rect y="52" width="976" height="33" fill="#28d17e" opacity="0.07"/>
+    <text x="26" y="75" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="19" font-weight="700" fill="#28d17e">+</text>
+    <text x="52" y="75" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="19" fill="#f4f4f6">@alex.rivers</text>
+    <text x="950" y="75" text-anchor="end" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="17" fill="#5d5d70">new follower</text>
+
+    <rect y="85" width="976" height="33" fill="#28d17e" opacity="0.07"/>
+    <text x="26" y="108" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="19" font-weight="700" fill="#28d17e">+</text>
+    <text x="52" y="108" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="19" fill="#f4f4f6">@studio.lumen</text>
+    <text x="950" y="108" text-anchor="end" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="17" fill="#5d5d70">new follower</text>
+
+    <rect y="118" width="976" height="32" fill="#ff4d6d" opacity="0.07"/>
+    <text x="26" y="140" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="19" font-weight="700" fill="#ff4d6d">-</text>
+    <text x="52" y="140" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="19" fill="#f4f4f6">@nora.builds</text>
+    <text x="950" y="140" text-anchor="end" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="17" fill="#5d5d70">unfollowed</text>
   </g>
 </svg>

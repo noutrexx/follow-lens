@@ -282,6 +282,7 @@ tailwind.config = {
  .chip::before{@apply w-2.5 flex-none font-bold;}
  .chip.add{background:var(--green-bg);} .chip.add::before{content:'+';@apply text-add;}
  .chip.rem{background:var(--red-bg);} .chip.rem::before{content:'-';@apply text-del;}
+ .chip.gone::before{content:'~';@apply text-faint;} .chip.gone .usr{@apply text-muted;}
  .chip:hover{background:var(--hover);}
  .two{@apply grid grid-cols-2 gap-2.5;} @media(max-width:760px){.two{@apply grid-cols-1;}}
  .cmp-t{@apply mb-3 flex items-center justify-between gap-2.5 text-[13px] font-bold;}
@@ -391,7 +392,18 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-jump]');if
 document.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;
  const t=document.activeElement&&document.activeElement.closest?document.activeElement.closest('[data-jump]'):null;
  if(t){e.preventDefault();jumpTo(t.dataset.jump);}});
-function timeline(d,kind){const items=d.history.slice(0,12);
+// An account that leaves the followers and the following list in the same scan
+// has almost always gone away - deactivated, renamed or turned private - rather
+// than unfollowed. Collect those so the rows can say so instead of raising two
+// false alarms.
+function vanished(t){const out=new Set();
+ if(!t.following||!t.followers)return out;
+ const byAt={};
+ t.followers.history.forEach(h=>{byAt[h.at]=new Set(h.removed);});
+ t.following.history.forEach(h=>{const also=byAt[h.at];if(!also)return;
+  h.removed.forEach(u=>{if(also.has(u))out.add(h.at+'|'+u);});});
+ return out;}
+function timeline(d,kind,gone){const items=d.history.slice(0,12);
  if(!items.length)return '<div class="card"><span class="empty">No changes yet &mdash; at least 2 scans are needed to compare.</span></div>';
  const L=kind==='followers'?{a:'new follower',r:'unfollowed'}:{a:'now following',r:'stopped following'};
  return items.map(h=>{
@@ -402,7 +414,8 @@ function timeline(d,kind){const items=d.history.slice(0,12);
    +(h.added.length?'<b class="up">+'+h.added.length+'</b>':'')
    +(h.removed.length?' <b class="down">-'+h.removed.length+'</b>':'')+'</span></div><div class="rows">';
   h.added.forEach(u=>{s+=row(u,'add',L.a);});
-  h.removed.forEach(u=>{s+=row(u,'rem',L.r);});
+  h.removed.forEach(u=>{const away=gone&&gone.has(h.at+'|'+u);
+   s+=row(u,away?'gone':'rem',away?'account gone':L.r);});
   return s+'</div></div>';}).join('');}
 const row=(u,c,note)=>'<a class="chip '+c+'" data-u="'+u+'" href="'+igl(u)+'" target="_blank">'
  +'<span class="usr">@'+u+'</span><span class="note">'+note+'</span></a>';
@@ -436,8 +449,9 @@ function panel(name){const t=DATA.targets[name],s=t.stats||{},disp=t.display||na
  h+='<div class="sec"><div class="sec-h">'+ic('trend')+'<div class="sec-t">Recent changes</div>'
    +'<div class="filters" data-host="'+name+'"><button class="on" onclick="filt(this,\''+name+'\',\'all\')">All</button><button onclick="filt(this,\''+name+'\',\'new\')">New</button><button onclick="filt(this,\''+name+'\',\'rem\')">Removed</button></div></div>';
  h+='<div id="tl_'+name+'">';
- if(t.following){h+='<div class="ml">In following</div>'+timeline(t.following,'following');}
- if(t.followers){h+='<div class="ml">In followers</div>'+timeline(t.followers,'followers');}
+ const gone=vanished(t);
+ if(t.following){h+='<div class="ml">In following</div>'+timeline(t.following,'following',gone);}
+ if(t.followers){h+='<div class="ml">In followers</div>'+timeline(t.followers,'followers',gone);}
  h+='</div></div>';
  // reciprocity
  if(t.compare){const self=name==='self';h+='<div class="sec" id="sec_'+name+'_rec"><div class="sec-h">'+ic('scale')+'<div class="sec-t">Reciprocity</div></div><div class="two">'

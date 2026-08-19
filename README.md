@@ -29,7 +29,7 @@ It runs entirely on your machine. Authentication uses a session cookie you copy 
 
 | | |
 | --- | --- |
-| **Scans read as diffs** | Each scan is a pane with a `+N -N` tally and one row per account, signed `+` or `-`, stating what happened: *new follower*, *unfollowed*, *now following*, *stopped following*. |
+| **Scans read as diffs** | Each scan is a pane with a `+N -N` tally and one row per account, signed `+` or `-`, stating what happened: *new follower*, *unfollowed*, *now following*, *stopped following* &mdash; or *account gone* for someone who left both lists at once, which is a deactivated or renamed account rather than an unfollow. |
 | **Counters navigate** | Following and followers jump to their lists; mutual and one-way jump to reciprocity. Collapsed lists open on the way. |
 | **Change history** | Every run is a timestamped snapshot, so any two runs remain comparable. |
 | **Reciprocity** | Accounts you follow that never followed back, and the reverse. |

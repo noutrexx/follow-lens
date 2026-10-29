@@ -25,6 +25,15 @@ class RateLimited(Exception):
     """Raised when Instagram keeps returning HTTP 429 after retries."""
 
 
+class SessionRejected(PermissionError):
+    """Raised when Instagram answers 401.
+
+    This is not proof of an expired cookie: the same session is routinely
+    accepted for one account and refused for another, so the caller decides
+    what to tell the user based on what else the run managed to read.
+    """
+
+
 class FetchError(Exception):
     """Raised when a friendship page comes back with an unexpected status.
 
@@ -81,7 +90,7 @@ class IGWeb:
                     continue
                 raise RateLimited("Instagram returned 429 (too many requests). Wait a bit and retry.")
             if resp.status_code == 401:
-                raise PermissionError("Session invalid or expired (401). Refresh your sessionid.")
+                raise SessionRejected("Instagram refused this request (401).")
             return resp
         return last  # type: ignore[return-value]
 

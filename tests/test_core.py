@@ -6,6 +6,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 
 import igweb
+import scanner
 import storage
 
 
@@ -108,6 +109,23 @@ class UnionRecoveryTests(unittest.TestCase):
     def test_followers_recovers_account_missing_from_first_pass(self):
         client = self._client(self._pages())
         self.assertEqual(client.followers("42"), {"1": "alice", "2": "bob"})
+
+
+class SessionErrorTests(unittest.TestCase):
+    """A 401 means different things depending on what the run already read."""
+
+    def test_blames_the_account_when_another_one_was_read(self):
+        msg = scanner.session_error(igweb.SessionRejected("401."), ["alex.rivers"])
+        self.assertIn("alex.rivers", msg)
+        self.assertIn("refusing this account", msg)
+        self.assertNotIn("expired", msg)
+
+    def test_blames_the_session_when_nothing_was_read(self):
+        msg = scanner.session_error(igweb.SessionRejected("401."), [])
+        self.assertIn("expired", msg)
+
+    def test_rejection_is_still_a_permission_error(self):
+        self.assertTrue(issubclass(igweb.SessionRejected, PermissionError))
 
 
 class SessionParsingTests(unittest.TestCase):

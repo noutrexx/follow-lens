@@ -26,6 +26,14 @@ def _read_last() -> float:
         return 0.0
 
 
+def session_error(exc: Exception, scanned: list[str]) -> str:
+    """Explain a 401 using what the rest of this run already managed to read."""
+    if scanned:
+        return (f"{exc} The session itself works -- {scanned[0]} was read in this same run -- "
+                "so Instagram is refusing this account for now. Wait a while before retrying.")
+    return f"{exc} No account could be read, so the sessionid has most likely expired. Refresh it."
+
+
 def run_scan(force: bool = False) -> dict:
     cfg = load_config()
     sessionid = cfg.get("sessionid", "").strip()
@@ -55,6 +63,7 @@ def run_scan(force: bool = False) -> dict:
     known.setdefault(me_username.lower(), ig.self_id)
 
     summary = {"ok": True, "at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "targets": []}
+    scanned: list[str] = []
 
     for t in targets:
         uname = me_username if t == "self" else t
@@ -64,6 +73,9 @@ def run_scan(force: bool = False) -> dict:
             flw = ig.followers(uid, max_passes=max_passes)
         except igweb.RateLimited as e:
             return {"ok": False, "error": f"429: {e} (too many scans today, try again in ~30 min)"}
+        except igweb.SessionRejected as e:
+            summary["targets"].append({"target": t, "error": session_error(e, scanned)})
+            continue
         except Exception as e:  # noqa: BLE001
             summary["targets"].append({"target": t, "error": f"{type(e).__name__}: {e}"})
             continue
@@ -77,6 +89,7 @@ def run_scan(force: bool = False) -> dict:
                 "count": len(users), "baseline": d["is_baseline"],
                 "added": sorted(d["added"].values()), "removed": sorted(d["removed"].values()),
             }
+        scanned.append(t)
         summary["targets"].append({"target": t, "changes": changes})
 
     LAST_SCAN.parent.mkdir(parents=True, exist_ok=True)

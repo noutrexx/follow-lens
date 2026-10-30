@@ -283,6 +283,8 @@ tailwind.config = {
  .chip.add{background:var(--green-bg);} .chip.add::before{content:'+';@apply text-add;}
  .chip.rem{background:var(--red-bg);} .chip.rem::before{content:'-';@apply text-del;}
  .chip.gone::before{content:'~';@apply text-faint;} .chip.gone .usr{@apply text-muted;}
+ /* it was removed, but a later scan handed the account back */
+ .chip.back::before{content:'-';@apply text-faint;} .chip.back .usr{@apply text-muted line-through decoration-1;}
  .chip:hover{background:var(--hover);}
  .two{@apply grid grid-cols-2 gap-2.5;} @media(max-width:760px){.two{@apply grid-cols-1;}}
  .cmp-t{@apply mb-3 flex items-center justify-between gap-2.5 text-[13px] font-bold;}
@@ -403,7 +405,16 @@ function vanished(t){const out=new Set();
  t.following.history.forEach(h=>{const also=byAt[h.at];if(!also)return;
   h.removed.forEach(u=>{if(also.has(u))out.add(h.at+'|'+u);});});
  return out;}
-function timeline(d,kind,gone){const items=d.history.slice(0,12);
+// A removal that a later scan undoes was never an unfollow. Instagram's list
+// endpoints drop accounts from a page and hand them back on a later pass, and
+// on real history most reported removals turn out to be exactly that.
+// history is newest-first, so anything "later" sits at a lower index.
+function undone(d){const out=new Set(),h=d.history;
+ for(let i=0;i<h.length;i++){const back=new Set();
+  for(let j=0;j<i;j++)h[j].added.forEach(u=>back.add(u));
+  h[i].removed.forEach(u=>{if(back.has(u))out.add(h[i].at+'|'+u);});}
+ return out;}
+function timeline(d,kind,gone){const undo=undone(d);const items=d.history.slice(0,12);
  if(!items.length)return '<div class="card"><span class="empty">No changes yet &mdash; at least 2 scans are needed to compare.</span></div>';
  const L=kind==='followers'?{a:'new follower',r:'unfollowed'}:{a:'now following',r:'stopped following'};
  return items.map(h=>{
@@ -414,8 +425,10 @@ function timeline(d,kind,gone){const items=d.history.slice(0,12);
    +(h.added.length?'<b class="up">+'+h.added.length+'</b>':'')
    +(h.removed.length?' <b class="down">-'+h.removed.length+'</b>':'')+'</span></div><div class="rows">';
   h.added.forEach(u=>{s+=row(u,'add',L.a);});
-  h.removed.forEach(u=>{const away=gone&&gone.has(h.at+'|'+u);
-   s+=row(u,away?'gone':'rem',away?'account gone':L.r);});
+  h.removed.forEach(u=>{const key=h.at+'|'+u;
+   if(gone&&gone.has(key))s+=row(u,'gone','account gone');
+   else if(undo.has(key))s+=row(u,'back','back since');
+   else s+=row(u,'rem',L.r);});
   return s+'</div></div>';}).join('');}
 const row=(u,c,note)=>'<a class="chip '+c+'" data-u="'+u+'" href="'+igl(u)+'" target="_blank">'
  +'<span class="usr">@'+u+'</span><span class="note">'+note+'</span></a>';

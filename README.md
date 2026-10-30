@@ -36,6 +36,7 @@ It runs entirely on your machine. Authentication uses a session cookie you copy 
 | **Reciprocity** | Accounts you follow that never followed back, and the reverse. |
 | **Account comparison** | Shared followers and shared following between any two tracked accounts. |
 | **Search and filters** | Match any username in the active account; filter the feed to new or removed. |
+| **Eight languages** | English, Türkçe, 中文, Español, Deutsch, Français, Русский and 日本語 across the dashboard and the landing page. Switches without a reload and remembers the choice. |
 | **Themes** | Dark by default. The header toggle switches to light and remembers the choice. |
 | **Keyboard** | `/` search · `R` rescan · `T` theme · `Esc` clear. |
 | **Accessibility** | Visible focus rings, keyboard-operable counters, and animations that stop when the OS asks for reduced motion. |
@@ -74,6 +75,48 @@ Shared followers and shared following between two tracked accounts.
 ### Landing page
 
 <img src="assets/landing.png" alt="The FollowLens landing page" width="100%">
+
+## Languages
+
+FollowLens is fully translated into eight languages. Every label, button, row note, empty state and error message on both pages follows the selected language.
+
+| Code | Language | | Code | Language |
+| --- | --- | --- | --- | --- |
+| `en` | English | | `de` | Deutsch |
+| `tr` | Türkçe | | `fr` | Français |
+| `zh` | 中文 (简体) | | `ru` | Русский |
+| `es` | Español | | `ja` | 日本語 |
+
+- **Picking a language.** Use the selector in the header. The choice is stored in the browser and shared between the landing page and the dashboard, so whichever page you set it on, the other opens in the same language.
+- **First visit.** If nothing has been chosen yet, the browser's own language is used when it is one of the eight; otherwise English.
+- **Typography.** Chinese and Japanese labels drop the wide letter-spacing the Latin labels use, so characters are not pulled apart.
+- **Without the server.** The landing page keeps its English in the markup and only swaps it once the translation table loads, so it never renders blank.
+
+<table>
+<tr>
+<td width="33%"><img src="assets/i18n-zh.png" alt="The dashboard in Chinese"></td>
+<td width="33%"><img src="assets/i18n-tr.png" alt="The dashboard in Turkish"></td>
+<td width="33%"><img src="assets/i18n-ja.png" alt="The dashboard in Japanese"></td>
+</tr>
+<tr>
+<td align="center">中文</td>
+<td align="center">Türkçe</td>
+<td align="center">日本語</td>
+</tr>
+</table>
+
+### Adding a language
+
+All copy lives in [`backend/i18n.py`](backend/i18n.py): one table for the dashboard and one for the landing page.
+
+1. Add a `(code, native name)` pair to `LANGS`.
+2. Add a list of strings for that code to `T` and to `LANDING`, in the same order as `KEYS` and `LANDING_KEYS`.
+3. Keep the placeholders: `{n}` is an account name, `{code}` is where the page places its inline `<code>` element, so word order is free to change around it.
+4. Run the tests. They fail if a language is missing a key, leaves a string empty, drops a placeholder, or if the landing page and its table disagree about which keys exist.
+
+```bash
+.venv\Scripts\python.exe -m unittest discover -s tests
+```
 
 ## How it works
 
@@ -168,7 +211,7 @@ curl -X POST "http://localhost:5005/scan?force=1"
 
 ## Tech stack
 
-Python, Flask and requests on the backend. The frontend is plain HTML and JavaScript styled with Tailwind loaded from a CDN — no bundler, no `node_modules`, no build step. Tests run on `unittest`; CI covers Python 3.10–3.12, linting, CodeQL and secret scanning.
+Python, Flask and requests on the backend. The frontend is plain HTML and JavaScript styled with Tailwind loaded from a CDN — no bundler, no `node_modules`, no build step. Translations are plain Python data embedded as JSON, with no i18n library. Tests run on `unittest`; CI covers Python 3.10–3.12, linting, CodeQL and secret scanning.
 
 ## Project structure
 
@@ -180,11 +223,12 @@ follow-lens/
 │  ├─ scanner.py          #   scan orchestration: cooldown, diff, snapshots
 │  ├─ igweb.py            #   Instagram web client, session-based and rate-limit aware
 │  ├─ storage.py          #   snapshot storage and diffing
+│  ├─ i18n.py             #   every UI string, in eight languages
 │  └─ report_html.py      #   dashboard generator
 ├─ frontend/
 │  ├─ landing.html        #   landing page
 │  └─ og.svg              #   social preview image
-├─ tests/                 # unit tests for diffing, pagination and session parsing
+├─ tests/                 # unit tests for diffing, pagination, sessions and translations
 ├─ assets/                # images used in this README
 ├─ config.example.json    # sample config, copy to config.json
 └─ requirements.txt

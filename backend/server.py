@@ -10,6 +10,7 @@ import json
 import threading
 from pathlib import Path
 
+import i18n
 import report_html
 import scanner
 from flask import Flask, jsonify, request, send_file, send_from_directory
@@ -44,6 +45,12 @@ def dashboard():
 @app.route("/assets/<path:name>")
 def assets(name: str):
     return send_from_directory(ASSETS, name)
+
+
+@app.route("/i18n/landing.json")
+def landing_strings():
+    """Landing-page copy in every supported language; the page fetches it once."""
+    return jsonify({"langs": i18n.LANGS, "strings": i18n.landing_table()})
 
 
 @app.route("/og.svg")

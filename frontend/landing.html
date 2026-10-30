@@ -57,6 +57,8 @@ tailwind.config = {
  /* no scrollbar anywhere: scrolling still works, the bar is just not drawn */
  html{scrollbar-width:none;-ms-overflow-style:none;}
  *::-webkit-scrollbar{width:0;height:0;display:none;}
+ /* wide tracking pulls Han and kana apart; CJK sets tight */
+ html:lang(zh) [class*="tracking-"], html:lang(ja) [class*="tracking-"]{letter-spacing:normal;}
 </style>
 </head>
 <body class="bg-ink-950 font-sans text-white/90 antialiased selection:bg-brand/40">
@@ -77,12 +79,13 @@ tailwind.config = {
       FollowLens
     </a>
     <nav class="ml-auto hidden gap-6 font-mono text-[11px] font-semibold uppercase tracking-[.14em] text-white/45 sm:flex" id="nav">
-      <a href="#features" class="transition-colors hover:text-white">Features</a>
-      <a href="#how"      class="transition-colors hover:text-white">How</a>
-      <a href="#pricing"  class="transition-colors hover:text-white">Pricing</a>
-      <a href="#faq"      class="transition-colors hover:text-white">FAQ</a>
+      <a href="#features" class="transition-colors hover:text-white"><span data-i18n="nav_features">Features</span></a>
+      <a href="#how"      class="transition-colors hover:text-white"><span data-i18n="nav_how">How</span></a>
+      <a href="#pricing"  class="transition-colors hover:text-white"><span data-i18n="nav_pricing">Pricing</span></a>
+      <a href="#faq"      class="transition-colors hover:text-white"><span data-i18n="nav_faq">FAQ</span></a>
     </nav>
-    <a href="/dashboard" class="rounded-lg bg-white px-3.5 py-1.5 text-[13px] font-bold text-ink-950 transition hover:bg-white/85">Dashboard</a>
+    <select id="lg" aria-label="Language" class="hidden h-8 cursor-pointer rounded-lg border border-white/15 bg-white/5 px-2 font-mono text-xs text-white/70 outline-none transition hover:border-white/30 focus:border-white/30"></select>
+    <a href="/dashboard" class="rounded-lg bg-white px-3.5 py-1.5 text-[13px] font-bold text-ink-950 transition hover:bg-white/85"><span data-i18n="nav_dashboard">Dashboard</span></a>
   </div>
 </header>
 
@@ -92,17 +95,17 @@ tailwind.config = {
   <section class="border-b border-white/10 py-16 sm:py-24">
     <p class="flex items-center gap-2 font-mono text-[11px] font-semibold uppercase tracking-[.18em] text-white/45">
       <span class="h-1.5 w-1.5 rounded-full bg-add shadow-[0_0_0_4px] shadow-add/15"></span>
-      Runs on your machine
+      <span data-i18n="kicker">Runs on your machine</span>
     </p>
     <h1 class="mt-5 text-[2.6rem] font-black leading-[1.03] tracking-tight sm:text-6xl">
-      Your follower list,<br><span class="text-brand-light">as a diff.</span>
+      <span data-i18n="title_a">Your follower list,</span><br><span class="text-brand-light"><span data-i18n="title_b">as a diff.</span></span>
     </h1>
     <p class="mt-5 max-w-xl text-[17px] leading-relaxed text-white/60">
-      Every scan is a snapshot. FollowLens compares them and tells you exactly who arrived, who left, and who never followed back &mdash; without a password form or a hosted account.
+      <span data-i18n="lead">Every scan is a snapshot. FollowLens compares them and tells you exactly who arrived, who left, and who never followed back &mdash; without a password form or a hosted account.</span>
     </p>
     <div class="mt-7 flex flex-wrap gap-3">
-      <a href="/dashboard" class="rounded-xl bg-brand px-5 py-2.5 text-sm font-bold shadow-lg shadow-brand/25 transition hover:brightness-110">Open dashboard</a>
-      <a href="#how" class="rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-bold transition hover:bg-white/10">How it works</a>
+      <a href="/dashboard" class="rounded-xl bg-brand px-5 py-2.5 text-sm font-bold shadow-lg shadow-brand/25 transition hover:brightness-110"><span data-i18n="cta_open">Open dashboard</span></a>
+      <a href="#how" class="rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-bold transition hover:bg-white/10"><span data-i18n="cta_how">How it works</span></a>
     </div>
 
     <!-- the product's actual output, as the hero visual -->
@@ -111,100 +114,100 @@ tailwind.config = {
         <span class="h-2.5 w-2.5 rounded-full bg-[#ff5f57]"></span>
         <span class="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]"></span>
         <span class="h-2.5 w-2.5 rounded-full bg-[#28c840]"></span>
-        <span class="ml-2">scan &middot; 12 Jun 09:41</span>
+        <span class="ml-2"><span data-i18n="demo_scan">scan</span> &middot; 12 Jun 09:41</span>
         <span class="ml-auto">+2 &minus;3</span>
       </div>
       <div class="divide-y divide-white/5 font-mono text-[13px]">
-        <div class="flex items-center gap-3 bg-add/[.06] px-4 py-2.5"><span class="w-3 font-bold text-add">+</span><span class="text-white/85">alex.rivers</span><span class="ml-auto text-[11px] text-white/35">new follower</span></div>
-        <div class="flex items-center gap-3 bg-add/[.06] px-4 py-2.5"><span class="w-3 font-bold text-add">+</span><span class="text-white/85">studio.lumen</span><span class="ml-auto text-[11px] text-white/35">new follower</span></div>
-        <div class="flex items-center gap-3 bg-del/[.06] px-4 py-2.5"><span class="w-3 font-bold text-del">&minus;</span><span class="text-white/85">nora.builds</span><span class="ml-auto text-[11px] text-white/35">unfollowed</span></div>
-        <div class="flex items-center gap-3 bg-del/[.06] px-4 py-2.5"><span class="w-3 font-bold text-del">&minus;</span><span class="text-white/85">mint.paper</span><span class="ml-auto text-[11px] text-white/35">unfollowed</span></div>
-        <div class="flex items-center gap-3 px-4 py-2.5 text-white/45"><span class="w-3">~</span><span>halo.works</span><span class="ml-auto text-[11px]">stopped following back</span></div>
+        <div class="flex items-center gap-3 bg-add/[.06] px-4 py-2.5"><span class="w-3 font-bold text-add">+</span><span class="text-white/85">alex.rivers</span><span class="ml-auto text-[11px] text-white/35"><span data-i18n="demo_new">new follower</span></span></div>
+        <div class="flex items-center gap-3 bg-add/[.06] px-4 py-2.5"><span class="w-3 font-bold text-add">+</span><span class="text-white/85">studio.lumen</span><span class="ml-auto text-[11px] text-white/35"><span data-i18n="demo_new">new follower</span></span></div>
+        <div class="flex items-center gap-3 bg-del/[.06] px-4 py-2.5"><span class="w-3 font-bold text-del">&minus;</span><span class="text-white/85">nora.builds</span><span class="ml-auto text-[11px] text-white/35"><span data-i18n="demo_unf">unfollowed</span></span></div>
+        <div class="flex items-center gap-3 bg-del/[.06] px-4 py-2.5"><span class="w-3 font-bold text-del">&minus;</span><span class="text-white/85">mint.paper</span><span class="ml-auto text-[11px] text-white/35"><span data-i18n="demo_unf">unfollowed</span></span></div>
+        <div class="flex items-center gap-3 px-4 py-2.5 text-white/45"><span class="w-3">~</span><span>halo.works</span><span class="ml-auto text-[11px]"><span data-i18n="demo_back">stopped following back</span></span></div>
       </div>
       <div class="grid grid-cols-3 divide-x divide-white/5 border-t border-white/10 bg-black/20 text-center">
-        <div class="px-3 py-3.5"><div class="font-mono text-[10px] uppercase tracking-widest text-white/35">Followers</div><strong class="metric mt-1 block text-xl font-black">842</strong></div>
-        <div class="px-3 py-3.5"><div class="font-mono text-[10px] uppercase tracking-widest text-white/35">Mutual</div><strong class="metric mt-1 block text-xl font-black">78%</strong></div>
-        <div class="px-3 py-3.5"><div class="font-mono text-[10px] uppercase tracking-widest text-white/35">One-way</div><strong class="metric mt-1 block text-xl font-black">134</strong></div>
+        <div class="px-3 py-3.5"><div class="font-mono text-[10px] uppercase tracking-widest text-white/35"><span data-i18n="st_followers">Followers</span></div><strong class="metric mt-1 block text-xl font-black">842</strong></div>
+        <div class="px-3 py-3.5"><div class="font-mono text-[10px] uppercase tracking-widest text-white/35"><span data-i18n="st_mutual">Mutual</span></div><strong class="metric mt-1 block text-xl font-black">78%</strong></div>
+        <div class="px-3 py-3.5"><div class="font-mono text-[10px] uppercase tracking-widest text-white/35"><span data-i18n="st_oneway">One-way</span></div><strong class="metric mt-1 block text-xl font-black">134</strong></div>
       </div>
     </div>
   </section>
 
   <!-- features -->
   <section id="features" class="border-b border-white/10 py-16">
-    <h2 class="font-mono text-[11px] font-bold uppercase tracking-[.18em] text-brand-light">Features</h2>
-    <p class="mt-3 max-w-lg text-2xl font-extrabold leading-snug tracking-tight sm:text-[28px]">Only the four questions you actually open it for.</p>
+    <h2 class="font-mono text-[11px] font-bold uppercase tracking-[.18em] text-brand-light"><span data-i18n="nav_features">Features</span></h2>
+    <p class="mt-3 max-w-lg text-2xl font-extrabold leading-snug tracking-tight sm:text-[28px]"><span data-i18n="feat_sub">Only the four questions you actually open it for.</span></p>
     <div class="mt-8 grid gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 sm:grid-cols-2">
       <article class="reveal bg-ink-900 p-6 transition-colors hover:bg-ink-800">
         <span class="font-mono text-xs font-bold text-add">+ / &minus;</span>
-        <h3 class="mt-3 font-bold">Who changed</h3>
-        <p class="mt-1.5 text-sm leading-relaxed text-white/55">New and removed followers, grouped by the scan that found them.</p>
+        <h3 class="mt-3 font-bold"><span data-i18n="f1_t">Who changed</span></h3>
+        <p class="mt-1.5 text-sm leading-relaxed text-white/55"><span data-i18n="f1_d">New and removed followers, grouped by the scan that found them.</span></p>
       </article>
       <article class="reveal bg-ink-900 p-6 transition-colors hover:bg-ink-800">
         <span class="font-mono text-xs font-bold text-brand-amber">&rarr; &nrarr;</span>
-        <h3 class="mt-3 font-bold">Who is one-way</h3>
-        <p class="mt-1.5 text-sm leading-relaxed text-white/55">Accounts you follow that never followed back, and the reverse.</p>
+        <h3 class="mt-3 font-bold"><span data-i18n="f2_t">Who is one-way</span></h3>
+        <p class="mt-1.5 text-sm leading-relaxed text-white/55"><span data-i18n="f2_d">Accounts you follow that never followed back, and the reverse.</span></p>
       </article>
       <article class="reveal bg-ink-900 p-6 transition-colors hover:bg-ink-800">
         <span class="font-mono text-xs font-bold text-brand-violet">&#8226;&#8226;&#8226;</span>
-        <h3 class="mt-3 font-bold">When it happened</h3>
-        <p class="mt-1.5 text-sm leading-relaxed text-white/55">Every run is a timestamped snapshot, so history stays comparable.</p>
+        <h3 class="mt-3 font-bold"><span data-i18n="f3_t">When it happened</span></h3>
+        <p class="mt-1.5 text-sm leading-relaxed text-white/55"><span data-i18n="f3_d">Every run is a timestamped snapshot, so history stays comparable.</span></p>
       </article>
       <article class="reveal bg-ink-900 p-6 transition-colors hover:bg-ink-800">
         <span class="font-mono text-xs font-bold text-white/50">&#8853;</span>
-        <h3 class="mt-3 font-bold">How two accounts overlap</h3>
-        <p class="mt-1.5 text-sm leading-relaxed text-white/55">Shared followers and shared following between any two tracked accounts.</p>
+        <h3 class="mt-3 font-bold"><span data-i18n="f4_t">How two accounts overlap</span></h3>
+        <p class="mt-1.5 text-sm leading-relaxed text-white/55"><span data-i18n="f4_d">Shared followers and shared following between any two tracked accounts.</span></p>
       </article>
     </div>
   </section>
 
   <!-- how -->
   <section id="how" class="border-b border-white/10 py-16">
-    <h2 class="font-mono text-[11px] font-bold uppercase tracking-[.18em] text-brand-light">How it works</h2>
-    <p class="mt-3 max-w-lg text-2xl font-extrabold leading-snug tracking-tight sm:text-[28px]">Three steps, then it is just history.</p>
+    <h2 class="font-mono text-[11px] font-bold uppercase tracking-[.18em] text-brand-light"><span data-i18n="cta_how">How it works</span></h2>
+    <p class="mt-3 max-w-lg text-2xl font-extrabold leading-snug tracking-tight sm:text-[28px]"><span data-i18n="how_sub">Three steps, then it is just history.</span></p>
     <ol class="mt-8 space-y-px overflow-hidden rounded-2xl border border-white/10 bg-white/10">
       <li class="reveal flex gap-4 bg-ink-900 p-6">
         <span class="font-mono text-sm font-bold text-white/25">01</span>
-        <div><h3 class="font-bold">Paste a session</h3><p class="mt-1 text-sm text-white/55">Copy the browser session value into <code class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[12px]">config.json</code>. No password is ever typed.</p></div>
+        <div><h3 class="font-bold"><span data-i18n="s1_t">Paste a session</span></h3><p class="mt-1 text-sm text-white/55"><span data-i18n="s1_d">Copy the browser session value into <code class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[12px]">config.json</code>. No password is ever typed.</span></p></div>
       </li>
       <li class="reveal flex gap-4 bg-ink-900 p-6">
         <span class="font-mono text-sm font-bold text-white/25">02</span>
-        <div><h3 class="font-bold">Run a scan</h3><p class="mt-1 text-sm text-white/55">Followers and following are collected for each tracked account, with delays and a cooldown.</p></div>
+        <div><h3 class="font-bold"><span data-i18n="s2_t">Run a scan</span></h3><p class="mt-1 text-sm text-white/55"><span data-i18n="s2_d">Followers and following are collected for each tracked account, with delays and a cooldown.</span></p></div>
       </li>
       <li class="reveal flex gap-4 bg-ink-900 p-6">
         <span class="font-mono text-sm font-bold text-white/25">03</span>
-        <div><h3 class="font-bold">Read the diff</h3><p class="mt-1 text-sm text-white/55">The dashboard compares the new snapshot with the last one and shows what moved.</p></div>
+        <div><h3 class="font-bold"><span data-i18n="s3_t">Read the diff</span></h3><p class="mt-1 text-sm text-white/55"><span data-i18n="s3_d">The dashboard compares the new snapshot with the last one and shows what moved.</span></p></div>
       </li>
     </ol>
     <figure class="reveal mt-8 overflow-hidden rounded-2xl border border-white/12 shadow-2xl shadow-black/40">
-      <img src="/assets/dashboard-preview.png" alt="FollowLens dashboard" class="block w-full" loading="lazy">
+      <img src="/assets/dashboard-preview.png" alt="FollowLens dashboard" data-i18n-alt="img_alt" class="block w-full" loading="lazy">
     </figure>
   </section>
 
   <!-- pricing -->
   <section id="pricing" class="border-b border-white/10 py-16">
-    <h2 class="font-mono text-[11px] font-bold uppercase tracking-[.18em] text-brand-light">Pricing</h2>
-    <p class="mt-3 max-w-lg text-2xl font-extrabold leading-snug tracking-tight sm:text-[28px]">Free where it runs. Paid where it saves time.</p>
+    <h2 class="font-mono text-[11px] font-bold uppercase tracking-[.18em] text-brand-light"><span data-i18n="nav_pricing">Pricing</span></h2>
+    <p class="mt-3 max-w-lg text-2xl font-extrabold leading-snug tracking-tight sm:text-[28px]"><span data-i18n="price_sub">Free where it runs. Paid where it saves time.</span></p>
     <div class="mt-8 grid gap-4 sm:grid-cols-2">
       <article class="reveal rounded-2xl border border-white/10 bg-ink-900 p-6">
-        <div class="font-mono text-[11px] font-bold uppercase tracking-widest text-white/40">Local</div>
-        <div class="mt-2 text-3xl font-black">Free</div>
-        <p class="mt-1.5 text-sm text-white/55">Personal monitoring on one machine.</p>
+        <div class="font-mono text-[11px] font-bold uppercase tracking-widest text-white/40"><span data-i18n="p1_name">Local</span></div>
+        <div class="mt-2 text-3xl font-black"><span data-i18n="p1_price">Free</span></div>
+        <p class="mt-1.5 text-sm text-white/55"><span data-i18n="p1_desc">Personal monitoring on one machine.</span></p>
         <ul class="mt-5 space-y-2 text-sm text-white/70">
-          <li class="flex gap-2.5"><span class="text-add">&check;</span>Manual scans</li>
-          <li class="flex gap-2.5"><span class="text-add">&check;</span>Local snapshots</li>
-          <li class="flex gap-2.5"><span class="text-add">&check;</span>Follower diffs</li>
-          <li class="flex gap-2.5"><span class="text-add">&check;</span>JSON export</li>
+          <li class="flex gap-2.5"><span class="text-add">&check;</span><span data-i18n="p1_i1">Manual scans</span></li>
+          <li class="flex gap-2.5"><span class="text-add">&check;</span><span data-i18n="p1_i2">Local snapshots</span></li>
+          <li class="flex gap-2.5"><span class="text-add">&check;</span><span data-i18n="p1_i3">Follower diffs</span></li>
+          <li class="flex gap-2.5"><span class="text-add">&check;</span><span data-i18n="p1_i4">JSON export</span></li>
         </ul>
       </article>
       <article class="reveal relative rounded-2xl border border-brand/40 bg-ink-900 p-6 shadow-xl shadow-brand/10">
         <div class="font-mono text-[11px] font-bold uppercase tracking-widest text-brand-light">Pro</div>
-        <div class="mt-2 text-3xl font-black">$9<span class="text-base font-bold text-white/40">/mo</span></div>
-        <p class="mt-1.5 text-sm text-white/55">Scheduled tracking and shareable reports.</p>
+        <div class="mt-2 text-3xl font-black">$9<span class="text-base font-bold text-white/40"><span data-i18n="p2_per">/mo</span></span></div>
+        <p class="mt-1.5 text-sm text-white/55"><span data-i18n="p2_desc">Scheduled tracking and shareable reports.</span></p>
         <ul class="mt-5 space-y-2 text-sm text-white/70">
-          <li class="flex gap-2.5"><span class="text-add">&check;</span>Scheduled scans</li>
-          <li class="flex gap-2.5"><span class="text-add">&check;</span>CSV and PDF reports</li>
-          <li class="flex gap-2.5"><span class="text-add">&check;</span>Desktop notifications</li>
-          <li class="flex gap-2.5"><span class="text-add">&check;</span>Multi-account history</li>
+          <li class="flex gap-2.5"><span class="text-add">&check;</span><span data-i18n="p2_i1">Scheduled scans</span></li>
+          <li class="flex gap-2.5"><span class="text-add">&check;</span><span data-i18n="p2_i2">CSV and PDF reports</span></li>
+          <li class="flex gap-2.5"><span class="text-add">&check;</span><span data-i18n="p2_i3">Desktop notifications</span></li>
+          <li class="flex gap-2.5"><span class="text-add">&check;</span><span data-i18n="p2_i4">Multi-account history</span></li>
         </ul>
       </article>
     </div>
@@ -212,23 +215,23 @@ tailwind.config = {
 
   <!-- faq -->
   <section id="faq" class="border-b border-white/10 py-16">
-    <h2 class="font-mono text-[11px] font-bold uppercase tracking-[.18em] text-brand-light">FAQ</h2>
+    <h2 class="font-mono text-[11px] font-bold uppercase tracking-[.18em] text-brand-light"><span data-i18n="nav_faq">FAQ</span></h2>
     <div class="mt-6 divide-y divide-white/10 border-y border-white/10">
       <details open class="group py-4">
-        <summary class="flex cursor-pointer list-none items-center font-bold marker:hidden">Does it ask for my Instagram password?<span class="ml-auto text-white/30 transition-transform group-open:rotate-45">+</span></summary>
-        <p class="mt-2.5 text-sm leading-relaxed text-white/55">No. It uses a browser session value you copy yourself. That value is sensitive, so it stays on your machine.</p>
+        <summary class="flex cursor-pointer list-none items-center font-bold marker:hidden"><span data-i18n="q1">Does it ask for my Instagram password?</span><span class="ml-auto text-white/30 transition-transform group-open:rotate-45">+</span></summary>
+        <p class="mt-2.5 text-sm leading-relaxed text-white/55"><span data-i18n="a1">No. It uses a browser session value you copy yourself. That value is sensitive, so it stays on your machine.</span></p>
       </details>
       <details class="group py-4">
-        <summary class="flex cursor-pointer list-none items-center font-bold marker:hidden">Can Instagram limit the account?<span class="ml-auto text-white/30 transition-transform group-open:rotate-45">+</span></summary>
-        <p class="mt-2.5 text-sm leading-relaxed text-white/55">Any automation carries risk. FollowLens spaces its requests and enforces a cooldown, but scans should stay conservative.</p>
+        <summary class="flex cursor-pointer list-none items-center font-bold marker:hidden"><span data-i18n="q2">Can Instagram limit the account?</span><span class="ml-auto text-white/30 transition-transform group-open:rotate-45">+</span></summary>
+        <p class="mt-2.5 text-sm leading-relaxed text-white/55"><span data-i18n="a2">Any automation carries risk. FollowLens spaces its requests and enforces a cooldown, but scans should stay conservative.</span></p>
       </details>
       <details class="group py-4">
-        <summary class="flex cursor-pointer list-none items-center font-bold marker:hidden">Where is the data stored?<span class="ml-auto text-white/30 transition-transform group-open:rotate-45">+</span></summary>
-        <p class="mt-2.5 text-sm leading-relaxed text-white/55">In the project's local <code class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[12px]">data/</code> folder. Nothing is uploaded.</p>
+        <summary class="flex cursor-pointer list-none items-center font-bold marker:hidden"><span data-i18n="q3">Where is the data stored?</span><span class="ml-auto text-white/30 transition-transform group-open:rotate-45">+</span></summary>
+        <p class="mt-2.5 text-sm leading-relaxed text-white/55"><span data-i18n="a3">In the project's local <code class="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[12px]">data/</code> folder. Nothing is uploaded.</span></p>
       </details>
       <details class="group py-4">
-        <summary class="flex cursor-pointer list-none items-center font-bold marker:hidden">Can it monitor private accounts?<span class="ml-auto text-white/30 transition-transform group-open:rotate-45">+</span></summary>
-        <p class="mt-2.5 text-sm leading-relaxed text-white/55">Only accounts your own session can already see.</p>
+        <summary class="flex cursor-pointer list-none items-center font-bold marker:hidden"><span data-i18n="q4">Can it monitor private accounts?</span><span class="ml-auto text-white/30 transition-transform group-open:rotate-45">+</span></summary>
+        <p class="mt-2.5 text-sm leading-relaxed text-white/55"><span data-i18n="a4">Only accounts your own session can already see.</span></p>
       </details>
     </div>
   </section>
@@ -237,9 +240,9 @@ tailwind.config = {
   <section class="py-16">
     <div class="reveal rounded-2xl bg-brand p-px">
       <div class="rounded-[15px] bg-ink-900 px-7 py-9 text-center">
-        <h2 class="text-2xl font-black tracking-tight sm:text-3xl">Scan once. Then read the changes.</h2>
-        <p class="mx-auto mt-2.5 max-w-md text-sm text-white/55">The dashboard is already running locally on port 5005.</p>
-        <a href="/dashboard" class="mt-6 inline-block rounded-xl bg-white px-6 py-3 text-sm font-bold text-ink-950 transition hover:bg-white/85">Open dashboard</a>
+        <h2 class="text-2xl font-black tracking-tight sm:text-3xl"><span data-i18n="cta_h">Scan once. Then read the changes.</span></h2>
+        <p class="mx-auto mt-2.5 max-w-md text-sm text-white/55"><span data-i18n="cta_d">The dashboard is already running locally on port 5005.</span></p>
+        <a href="/dashboard" class="mt-6 inline-block rounded-xl bg-white px-6 py-3 text-sm font-bold text-ink-950 transition hover:bg-white/85"><span data-i18n="cta_open">Open dashboard</span></a>
       </div>
     </div>
   </section>
@@ -247,8 +250,8 @@ tailwind.config = {
 
 <footer class="border-t border-white/10">
   <div class="mx-auto flex max-w-shell flex-wrap justify-between gap-3 px-5 py-7 font-mono text-[11px] text-white/35">
-    <span>FollowLens &middot; private Instagram analytics</span>
-    <span>No cloud account. Data stays local.</span>
+    <span data-i18n="foot_l">FollowLens &middot; private Instagram analytics</span>
+    <span><span data-i18n="foot_r">No cloud account. Data stays local.</span></span>
   </div>
 </footer>
 
@@ -302,6 +305,57 @@ tailwind.config = {
     });
   }, { threshold: .4 });
   document.querySelectorAll('section[id]').forEach(function (s) { so.observe(s); });
+})();
+</script>
+
+<script>
+// Language: the copy in the markup is English and stays if the table cannot be
+// fetched, so the page never renders blank. The choice is shared with the
+// dashboard through the same storage key.
+(function () {
+  var picker = document.getElementById('lg');
+  function esc(t) { return t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function pick(strings) {
+    var saved = null;
+    try { saved = localStorage.getItem('fl-lang'); } catch (e) {}
+    if (saved && strings[saved]) return saved;
+    var nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    return strings[nav] ? nav : 'en';
+  }
+  fetch('/i18n/landing.json').then(function (r) { return r.json(); }).then(function (data) {
+    var strings = data.strings;
+    // remember each sentence's own <code> so a translation can put it where its grammar wants
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var c = el.querySelector('code');
+      if (c) el.setAttribute('data-code', c.outerHTML);
+    });
+    function apply(lang) {
+      var t = strings[lang] || strings.en;
+      document.documentElement.lang = lang;
+      document.querySelectorAll('[data-i18n]').forEach(function (el) {
+        var v = t[el.getAttribute('data-i18n')];
+        if (v == null) return;
+        var code = el.getAttribute('data-code');
+        if (code) el.innerHTML = esc(v).replace('{code}', code);
+        else el.textContent = v;
+      });
+      document.querySelectorAll('[data-i18n-alt]').forEach(function (el) {
+        var v = t[el.getAttribute('data-i18n-alt')];
+        if (v) el.alt = v;
+      });
+      picker.value = lang;
+    }
+    data.langs.forEach(function (pair) {
+      var o = document.createElement('option');
+      o.value = pair[0]; o.textContent = pair[1]; picker.appendChild(o);
+    });
+    picker.classList.remove('hidden');
+    picker.addEventListener('change', function () {
+      try { localStorage.setItem('fl-lang', picker.value); } catch (e) {}
+      apply(picker.value);
+    });
+    apply(pick(strings));
+  }).catch(function () {});
 })();
 </script>
 </body>

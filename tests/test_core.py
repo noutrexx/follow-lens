@@ -151,6 +151,25 @@ class TranslationTests(unittest.TestCase):
                 self.assertIn("{n}", table[code][key], f"{code}.{key} dropped the {{n}} placeholder")
 
 
+class LandingTranslationTests(unittest.TestCase):
+    """The landing table and the markup that consumes it must agree."""
+
+    def test_every_language_has_every_landing_key(self):
+        table = i18n.landing_table()
+        for code, _ in i18n.LANGS:
+            self.assertEqual(set(table[code]), set(i18n.LANDING_KEYS), code)
+
+    def test_code_placeholder_survives(self):
+        for code, strings in i18n.landing_table().items():
+            for key in ("s1_d", "a3"):
+                self.assertIn("{code}", strings[key], f"{code}.{key} lost {{code}}")
+
+    def test_every_key_is_used_by_the_page_and_nothing_else_is(self):
+        import re
+        html = (Path(__file__).resolve().parents[1] / "frontend" / "landing.html").read_text(encoding="utf-8")
+        used = set(re.findall(r'data-i18n(?:-alt)?="([a-z0-9_]+)"', html))
+        self.assertEqual(used, set(i18n.LANDING_KEYS))
+
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):
         client = igweb.IGWeb("42120983%3Ademosession%3A17")

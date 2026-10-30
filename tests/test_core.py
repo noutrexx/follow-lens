@@ -5,6 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "backend"))
 
+import i18n
 import igweb
 import scanner
 import storage
@@ -126,6 +127,28 @@ class SessionErrorTests(unittest.TestCase):
 
     def test_rejection_is_still_a_permission_error(self):
         self.assertTrue(issubclass(igweb.SessionRejected, PermissionError))
+
+
+class TranslationTests(unittest.TestCase):
+    """Every language must cover every string the dashboard asks for."""
+
+    def test_every_language_has_every_key(self):
+        table = i18n.table()
+        for code, _ in i18n.LANGS:
+            self.assertEqual(set(table[code]), set(i18n.KEYS), code)
+
+    def test_no_translation_is_empty(self):
+        for code, strings in i18n.table().items():
+            for key, text in strings.items():
+                self.assertTrue(text.strip(), f"{code}.{key} is empty")
+
+    def test_placeholders_survive_translation(self):
+        table = i18n.table()
+        for key, text in table["en"].items():
+            if "{n}" not in text:
+                continue
+            for code in table:
+                self.assertIn("{n}", table[code][key], f"{code}.{key} dropped the {{n}} placeholder")
 
 
 class SessionParsingTests(unittest.TestCase):

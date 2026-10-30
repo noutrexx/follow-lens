@@ -6,6 +6,8 @@ from datetime import datetime
 from itertools import pairwise
 from pathlib import Path
 
+import i18n
+
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
 OUT = ROOT / "frontend" / "viewer.html"
@@ -317,6 +319,13 @@ tailwind.config = {
  .venn svg{@apply mt-1 block h-[148px] w-full;}
  .venn .vn{@apply font-mono font-extrabold [text-anchor:middle];fill:var(--text);}
  .venn .vl{@apply text-[11px] font-semibold [text-anchor:middle];fill:var(--muted);}
+ /* wide tracking separates Han and kana into loose glyphs; CJK labels set tight */
+ html:lang(zh) :is(.sec-t,.st .lbl,.ml,.net .nl,.lg,.wm-t .path),
+ html:lang(ja) :is(.sec-t,.st .lbl,.ml,.net .nl,.lg,.wm-t .path){letter-spacing:normal;}
+ /* language picker, drawn like the other header controls */
+ .lang{@apply h-[34px] flex-none cursor-pointer rounded-lg border border-line bg-surface2 px-2 font-mono text-xs text-muted outline-none transition;}
+ .lang:hover,.lang:focus{@apply border-line2 text-body;}
+ .lang option{background:var(--bg);color:var(--text);}
  /* theme toggle */
  .tgl{@apply inline-flex h-[34px] w-[34px] flex-none cursor-pointer items-center justify-center rounded-lg border border-line bg-surface2 p-0 text-muted transition;}
  .tgl:hover{@apply border-line2 text-body;}
@@ -341,17 +350,25 @@ tailwind.config = {
  <div class="brand"><div class="mark"><svg viewBox='0 0 32 32'><path fill-rule='evenodd' fill='#fff' d='M16 8.4c5.3 0 9.6 3.3 11.6 7.6-2 4.3-6.3 7.6-11.6 7.6S6.4 20.3 4.4 16C6.4 11.7 10.7 8.4 16 8.4Zm0 4.3a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Z'/></svg></div><div class="wm-t">followlens<span class="path">~/dashboard</span></div></div>
  <div class="gsearch"><span class="si ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></span><input id="gs" placeholder="grep username&hellip;" oninput="gsearch(this.value)"><kbd>/</kbd></div>
  <div class="right">
-  <div class="live"><span class="dot"></span>Updated <b id="upd">__GEN__</b></div>
+  <div class="live"><span class="dot"></span><span id="updl">Updated</span> <b id="upd">__GEN__</b></div>
+  <select class="lang" id="lg" onchange="setLang(this.value)" aria-label="Language"></select>
   <button class="tgl" id="tg" onclick="toggleTheme()" title="Switch theme (T)" aria-label="Switch colour theme"><svg class="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg><svg class="moon" viewBox="0 0 24 24"><path d="M20.5 14.3A8.6 8.6 0 0 1 9.7 3.5a8.6 8.6 0 1 0 10.8 10.8z"/></svg></button>
   <a class="ghub" href="https://github.com/" target="_blank" title="GitHub"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.49l-.01-1.9c-2.78.62-3.37-1.21-3.37-1.21-.46-1.18-1.11-1.49-1.11-1.49-.9-.64.07-.62.07-.62 1 .07 1.53 1.06 1.53 1.06.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.36-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.72 0 0 .84-.27 2.75 1.05a9.4 9.4 0 0 1 5 0c1.91-1.32 2.75-1.05 2.75-1.05.55 1.42.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.94-2.34 4.81-4.57 5.06.36.32.68.94.68 1.9l-.01 2.81c0 .27.18.6.69.49A10.02 10.02 0 0 0 22 12.25C22 6.58 17.52 2 12 2z"/></svg></a>
   <button class="btn" id="rf" onclick="scan()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-2.1-9.4L23 10"/></svg><span class="t">Refresh</span></button>
  </div>
 </div></div>
 <div class="wrap"><div class="accts" id="accts"></div><div id="main"></div>
- <footer><span class="prompt">$</span> <b>followlens</b> &middot; local only &middot; no data leaves this machine</footer>
+ <footer><span class="prompt">$</span> <b>followlens</b> &middot; <span id="foot">local only &middot; no data leaves this machine</span></footer>
 </div>
 <script>
 const DATA=__DATA__;
+const I18N=__I18N__,LANGS=__LANGS__;
+function pickLang(){let s=null;try{s=localStorage.getItem('fl-lang');}catch(e){}
+ if(s&&I18N[s])return s;
+ const n=(navigator.language||'en').slice(0,2).toLowerCase();return I18N[n]?n:'en';}
+let LANG=pickLang();
+const tx=(k,v)=>{let s=(I18N[LANG]&&I18N[LANG][k])||I18N.en[k]||k;
+ if(v)for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s;};
 const I={
  clock:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>',
  up:'<svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="6"/><polyline points="6 12 12 6 18 12"/></svg>',
@@ -377,7 +394,7 @@ function donut(pct){const r=24,c=2*Math.PI*r,off=c*(1-pct/100);
  return '<svg class="donut" viewBox="0 0 64 64"><circle class="d-bg" cx="32" cy="32" r="'+r+'"/><circle class="d-fg" cx="32" cy="32" r="'+r+'" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+c.toFixed(1)+'" data-off="'+off.toFixed(1)+'"/><text class="d-t" x="32" y="37">'+pct+'%</text></svg>';}
 function lastDelta(d){if(!d||!d.history.length)return null;const h=d.history[0];return{a:h.added.length,r:h.removed.length};}
 function netChange(d){if(!d||d.series.length<2)return null;return d.series[d.series.length-1].count-d.series[0].count;}
-function delHtml(x){if(!x||(!x.a&&!x.r))return '<span class="dl">no change</span>';const p=[];if(x.a)p.push('<span class="up">'+ic('up')+'+'+x.a+'</span>');if(x.r)p.push('<span class="down">'+ic('down')+x.r+'</span>');return '<span class="dl">'+p.join('&nbsp;')+'</span>';}
+function delHtml(x){if(!x||(!x.a&&!x.r))return '<span class="dl">'+tx('noChange')+'</span>';const p=[];if(x.a)p.push('<span class="up">'+ic('up')+'+'+x.a+'</span>');if(x.r)p.push('<span class="down">'+ic('down')+x.r+'</span>');return '<span class="dl">'+p.join('&nbsp;')+'</span>';}
 function statTile(lbl,num,icn,d,jump){
  return '<div class="tile st'+(jump?' go" data-jump="'+jump+'" role="button" tabindex="0':'')+'">'
   +'<div class="top"><span class="lbl">'+lbl+'</span>'+ic(icn)+'</div>'
@@ -415,19 +432,19 @@ function undone(d){const out=new Set(),h=d.history;
   h[i].removed.forEach(u=>{if(back.has(u))out.add(h[i].at+'|'+u);});}
  return out;}
 function timeline(d,kind,gone){const undo=undone(d);const items=d.history.slice(0,12);
- if(!items.length)return '<div class="card"><span class="empty">No changes yet &mdash; at least 2 scans are needed to compare.</span></div>';
- const L=kind==='followers'?{a:'new follower',r:'unfollowed'}:{a:'now following',r:'stopped following'};
+ if(!items.length)return '<div class="card"><span class="empty">'+tx('noChanges')+'</span></div>';
+ const L=kind==='followers'?{a:tx('nNewFollower'),r:tx('nUnfollowed')}:{a:tx('nNowFollowing'),r:tx('nStopped')};
  return items.map(h=>{
   const has=((h.added.length?'new ':'')+(h.removed.length?'rem':'')).trim();
   let s='<div class="scan" data-has="'+has+'"><div class="scan-h">'
    +'<span class="lights"><i></i><i></i><i></i></span>'
-   +'<span class="scan-t">scan &middot; '+(h.at||'').replace('T',' ')+'</span><span class="scan-n">'
+   +'<span class="scan-t">'+tx('scan')+' &middot; '+(h.at||'').replace('T',' ')+'</span><span class="scan-n">'
    +(h.added.length?'<b class="up">+'+h.added.length+'</b>':'')
    +(h.removed.length?' <b class="down">-'+h.removed.length+'</b>':'')+'</span></div><div class="rows">';
   h.added.forEach(u=>{s+=row(u,'add',L.a);});
   h.removed.forEach(u=>{const key=h.at+'|'+u;
-   if(gone&&gone.has(key))s+=row(u,'gone','account gone');
-   else if(undo.has(key))s+=row(u,'back','back since');
+   if(gone&&gone.has(key))s+=row(u,'gone',tx('nGone'));
+   else if(undo.has(key))s+=row(u,'back',tx('nBack'));
    else s+=row(u,'rem',L.r);});
   return s+'</div></div>';}).join('');}
 const row=(u,c,note)=>'<a class="chip '+c+'" data-u="'+u+'" href="'+igl(u)+'" target="_blank">'
@@ -437,43 +454,43 @@ function sortList(btn,id,mode){btn.parentNode.querySelectorAll('button').forEach
  const box=document.getElementById(id);if(!box)return;const items=[...box.children];
  if(mode==='az')items.sort((a,b)=>a.dataset.u.localeCompare(b.dataset.u));else items.sort((a,b)=>(+a.dataset.i)-(+b.dataset.i));
  items.forEach(el=>box.appendChild(el));}
-function cmp(title,list){return '<div class="tile" style="padding:15px 17px"><div class="cmp-t"><span>'+title+'</span><span class="pill">'+list.length+'</span></div>'+(list.length?grid(list):'<span class="empty">None</span>')+'</div>';}
+function cmp(title,list){return '<div class="tile" style="padding:15px 17px"><div class="cmp-t"><span>'+title+'</span><span class="pill">'+list.length+'</span></div>'+(list.length?grid(list):'<span class="empty">'+tx('none')+'</span>')+'</div>';}
 function listSection(name,kind,d,label,icn){const lid='l_'+name+'_'+kind;
  return '<div class="sec" id="sec_'+name+'_'+kind+'"><div class="sec-h">'+ic(icn)+'<div class="sec-t">'+label+'</div><span class="pill">'+d.current.count+'</span></div>'
-  +'<details><summary><div class="more">Show '+d.current.count+' &middot; '+label+' '+ic('chev')+'</div></summary>'
-  +'<div class="sortbar">Sort<button class="on" onclick="sortList(this,\''+lid+'\',\'recent\')">Newest</button><button onclick="sortList(this,\''+lid+'\',\'az\')">A&ndash;Z</button></div>'
+  +'<details><summary><div class="more">'+tx('show')+' '+d.current.count+' &middot; '+label+' '+ic('chev')+'</div></summary>'
+  +'<div class="sortbar">'+tx('sort')+'<button class="on" onclick="sortList(this,\''+lid+'\',\'recent\')">'+tx('newest')+'</button><button onclick="sortList(this,\''+lid+'\',\'az\')">'+tx('az')+'</button></div>'
   +grid(d.current.usernames,lid)+'</details></div>';}
 function panel(name){const t=DATA.targets[name],s=t.stats||{},disp=t.display||name;
  const fwBack=t.compare?t.compare.not_following_back.length:0;
  const pct=s.following?Math.round(s.mutual/s.following*100):0;
  const net=netChange(t.followers);
- let netH='<div class="net"><div class="nl">net followers</div><div class="nv '+(net>0?'up':net<0?'down':'')+'">'+(net==null?'&ndash;':(net>0?'+':'')+net)+'</div></div>';
+ let netH='<div class="net"><div class="nl">'+tx('net')+'</div><div class="nv '+(net>0?'up':net<0?'down':'')+'">'+(net==null?'&ndash;':(net>0?'+':'')+net)+'</div></div>';
  // bento
  let h='<div class="tile b-prof"><div class="pf-top"><div class="pav"><span>'+ini(disp)+'</span></div>'
    +'<div><div class="pname"><a href="'+igl(disp)+'" target="_blank">@'+disp+'</a></div>'
-   +'<div class="psub">'+nf(s.following)+' following &middot; '+nf(s.followers)+' followers</div></div></div>'
-   +'<div class="pf-mid"><div class="donut-wrap">'+donut(pct)+'<div class="donut-lbl"><b>'+nf(s.mutual)+'</b>mutual<br>follow-back</div></div>'+netH+'</div></div>';
+   +'<div class="psub">'+nf(s.following)+' '+tx('following').toLocaleLowerCase(LANG)+' &middot; '+nf(s.followers)+' '+tx('followers').toLocaleLowerCase(LANG)+'</div></div></div>'
+   +'<div class="pf-mid"><div class="donut-wrap">'+donut(pct)+'<div class="donut-lbl"><b>'+nf(s.mutual)+'</b>'+tx('mutualWord')+'<br>'+tx('followBack')+'</div></div>'+netH+'</div></div>';
  h+='<div class="strip">'
-  +statTile('Following',s.following,'userplus',t.following,t.following?'sec_'+name+'_following':null)
-  +statTile('Followers',s.followers,'users',t.followers,t.followers?'sec_'+name+'_followers':null)
-  +statTile('Mutual',s.mutual,'scale',null,t.compare?'sec_'+name+'_rec':null)
-  +statTile('One-way',fwBack,'trend',null,t.compare?'sec_'+name+'_rec':null)+'</div>';
+  +statTile(tx('following'),s.following,'userplus',t.following,t.following?'sec_'+name+'_following':null)
+  +statTile(tx('followers'),s.followers,'users',t.followers,t.followers?'sec_'+name+'_followers':null)
+  +statTile(tx('mutual'),s.mutual,'scale',null,t.compare?'sec_'+name+'_rec':null)
+  +statTile(tx('oneway'),fwBack,'trend',null,t.compare?'sec_'+name+'_rec':null)+'</div>';
  // recent changes with filters
- h+='<div class="sec"><div class="sec-h">'+ic('trend')+'<div class="sec-t">Recent changes</div>'
-   +'<div class="filters" data-host="'+name+'"><button class="on" onclick="filt(this,\''+name+'\',\'all\')">All</button><button onclick="filt(this,\''+name+'\',\'new\')">New</button><button onclick="filt(this,\''+name+'\',\'rem\')">Removed</button></div></div>';
+ h+='<div class="sec"><div class="sec-h">'+ic('trend')+'<div class="sec-t">'+tx('recent')+'</div>'
+   +'<div class="filters" data-host="'+name+'"><button class="on" onclick="filt(this,\''+name+'\',\'all\')">'+tx('all')+'</button><button onclick="filt(this,\''+name+'\',\'new\')">'+tx('new')+'</button><button onclick="filt(this,\''+name+'\',\'rem\')">'+tx('removed')+'</button></div></div>';
  h+='<div id="tl_'+name+'">';
  const gone=vanished(t);
- if(t.following){h+='<div class="ml">In following</div>'+timeline(t.following,'following',gone);}
- if(t.followers){h+='<div class="ml">In followers</div>'+timeline(t.followers,'followers',gone);}
+ if(t.following){h+='<div class="ml">'+tx('inFollowing')+'</div>'+timeline(t.following,'following',gone);}
+ if(t.followers){h+='<div class="ml">'+tx('inFollowers')+'</div>'+timeline(t.followers,'followers',gone);}
  h+='</div></div>';
  // reciprocity
- if(t.compare){const self=name==='self';h+='<div class="sec" id="sec_'+name+'_rec"><div class="sec-h">'+ic('scale')+'<div class="sec-t">Reciprocity</div></div><div class="two">'
-  +cmp(self?'You follow, they don&rsquo;t follow back':'@'+disp+' follows, they don&rsquo;t follow back',t.compare.not_following_back)
-  +cmp(self?'They follow you, you don&rsquo;t follow back':'They follow @'+disp+', no follow back',t.compare.not_followed_back)+'</div></div>';}
+ if(t.compare){const self=name==='self';h+='<div class="sec" id="sec_'+name+'_rec"><div class="sec-h">'+ic('scale')+'<div class="sec-t">'+tx('reciprocity')+'</div></div><div class="two">'
+  +cmp(self?tx('recipSelfA'):tx('recipOtherA',{n:disp}),t.compare.not_following_back)
+  +cmp(self?tx('recipSelfB'):tx('recipOtherB',{n:disp}),t.compare.not_followed_back)+'</div></div>';}
  // lists + export
- h+='<div class="sec"><div class="sec-h">'+ic('dl')+'<div class="sec-t">Lists &amp; export</div><div class="sec-act" onclick="expt(\''+name+'\')">'+ic('dl')+'Export JSON</div></div>';
- if(t.following)h+=listSection(name,'following',t.following,'Following','userplus');
- if(t.followers)h+=listSection(name,'followers',t.followers,'Followers','users');
+ h+='<div class="sec"><div class="sec-h">'+ic('dl')+'<div class="sec-t">'+tx('lists')+'</div><div class="sec-act" onclick="expt(\''+name+'\')">'+ic('dl')+tx('export')+'</div></div>';
+ if(t.following)h+=listSection(name,'following',t.following,tx('following'),'userplus');
+ if(t.followers)h+=listSection(name,'followers',t.followers,tx('followers'),'users');
  h+='</div>';
  return h;}
 // ---- theme ----
@@ -500,10 +517,10 @@ function expt(name){const t=DATA.targets[name],disp=t.display||name;
   following:t.following?t.following.current.usernames:[],followers:t.followers?t.followers.current.usernames:[],
   reciprocity:t.compare,history:{following:t.following?t.following.history:[],followers:t.followers?t.followers.history:[]}};
  const b=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');
- a.href=URL.createObjectURL(b);a.download='followlens_'+disp+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast('Exported @'+disp+'.json');}
-function scan(){const b=document.getElementById('rf'),t=b.querySelector('.t');b.disabled=true;b.classList.add('spin');t.textContent='Scanning...';
- fetch('/scan',{method:'POST'}).then(r=>r.json()).then(j=>{if(j.ok){t.textContent='Updated';setTimeout(()=>location.reload(),450);}else{toast(j.error||'error');b.disabled=false;b.classList.remove('spin');t.textContent='Refresh';}})
- .catch(()=>{toast('Cannot reach server (is server.py running?)');b.disabled=false;b.classList.remove('spin');t.textContent='Refresh';});}
+ a.href=URL.createObjectURL(b);a.download='followlens_'+disp+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast(tx('exported')+' @'+disp+'.json');}
+function scan(){const b=document.getElementById('rf'),t=b.querySelector('.t');b.disabled=true;b.classList.add('spin');t.textContent=tx('scanning');
+ fetch('/scan',{method:'POST'}).then(r=>r.json()).then(j=>{if(j.ok){t.textContent=tx('updated');setTimeout(()=>location.reload(),450);}else{toast(j.error||'error');b.disabled=false;b.classList.remove('spin');t.textContent=tx('refresh');}})
+ .catch(()=>{toast(tx('noServer'));b.disabled=false;b.classList.remove('spin');t.textContent=tx('refresh');});}
 function toast(x){let e=document.getElementById('tt');if(!e){e=document.createElement('div');e.id='tt';
  e.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:rgba(20,20,27,.94);backdrop-filter:blur(10px);border:1px solid var(--line2);color:#fff;padding:11px 18px;border-radius:10px;font-size:14px;z-index:60;box-shadow:0 12px 40px rgba(0,0,0,.55);transition:.3s';document.body.appendChild(e);}
  e.textContent=x;e.style.opacity='1';clearTimeout(e._t);e._t=setTimeout(()=>e.style.opacity='0',4200);}
@@ -520,40 +537,59 @@ const interU=(a,b)=>{const s=new Set(b.map(x=>x.toLowerCase()));return a.filter(
 function venn(dispA,dispB,A,B){const both=interU(A,B),oa=A.length-both.length,ob=B.length-both.length;
  const svg='<svg viewBox="0 0 300 150"><circle cx="112" cy="74" r="60" fill="rgba(216,27,96,.16)" stroke="#d6276f" stroke-width="1.5"/><circle cx="188" cy="74" r="60" fill="rgba(142,36,170,.16)" stroke="#8e24aa" stroke-width="1.5"/>'
   +'<text class="vn" x="72" y="72" font-size="17">'+oa+'</text><text class="vl" x="72" y="90">@'+dispA.slice(0,9)+'</text>'
-  +'<text class="vn" x="150" y="72" font-size="21">'+both.length+'</text><text class="vl" x="150" y="90">shared</text>'
+  +'<text class="vn" x="150" y="72" font-size="21">'+both.length+'</text><text class="vl" x="150" y="90">'+tx('shared')+'</text>'
   +'<text class="vn" x="228" y="72" font-size="17">'+ob+'</text><text class="vl" x="228" y="90">@'+dispB.slice(0,9)+'</text></svg>';
  return {svg,both};}
-function comparePanel(){const opts=names.map(n=>'<option value="'+n+'">@'+(DATA.targets[n].display||n)+'</option>').join('');
- return '<div class="cmp-bar">'+ic('compare')+'<select id="cmpA" onchange="runCompare()">'+opts+'</select><span class="vs">vs</span><select id="cmpB" onchange="runCompare()">'+opts+'</select></div><div id="cmpOut"></div>';}
+function comparePanel(){const opts=Object.keys(DATA.targets).map(n=>'<option value="'+n+'">@'+(DATA.targets[n].display||n)+'</option>').join('');
+ return '<div class="cmp-bar">'+ic('compare')+'<select id="cmpA" onchange="runCompare()">'+opts+'</select><span class="vs">'+tx('vs')+'</span><select id="cmpB" onchange="runCompare()">'+opts+'</select></div><div id="cmpOut"></div>';}
 function runCompare(){const a=document.getElementById('cmpA').value,b=document.getElementById('cmpB').value,out=document.getElementById('cmpOut');
  const ta=DATA.targets[a],tb=DATA.targets[b],da=ta.display||a,db=tb.display||b;
- if(a===b){out.innerHTML='<div class="card"><span class="empty">Pick two different accounts to compare.</span></div>';return;}
+ if(a===b){out.innerHTML='<div class="card"><span class="empty">'+tx('pickTwo')+'</span></div>';return;}
  const aF=ta.followers?ta.followers.current.usernames:[],bF=tb.followers?tb.followers.current.usernames:[];
  const aG=ta.following?ta.following.current.usernames:[],bG=tb.following?tb.following.current.usernames:[];
  const vF=venn(da,db,aF,bF),vG=venn(da,db,aG,bG);
- let h='<div class="venns"><div class="venn-card"><div class="cmp-t"><span>Shared followers</span><span class="pill">'+vF.both.length+'</span></div><div class="venn">'+vF.svg+'</div></div>'
-  +'<div class="venn-card"><div class="cmp-t"><span>Shared following</span><span class="pill">'+vG.both.length+'</span></div><div class="venn">'+vG.svg+'</div></div></div>';
- h+='<div class="sec"><div class="sec-h">'+ic('users')+'<div class="sec-t">People who follow both</div><span class="pill">'+vF.both.length+'</span></div>'+(vF.both.length?grid(vF.both):'<div class="card"><span class="empty">No shared followers.</span></div>')+'</div>';
- h+='<div class="sec"><div class="sec-h">'+ic('userplus')+'<div class="sec-t">Accounts both follow</div><span class="pill">'+vG.both.length+'</span></div>'+(vG.both.length?grid(vG.both):'<div class="card"><span class="empty">No shared following.</span></div>')+'</div>';
+ let h='<div class="venns"><div class="venn-card"><div class="cmp-t"><span>'+tx('sharedFollowers')+'</span><span class="pill">'+vF.both.length+'</span></div><div class="venn">'+vF.svg+'</div></div>'
+  +'<div class="venn-card"><div class="cmp-t"><span>'+tx('sharedFollowing')+'</span><span class="pill">'+vG.both.length+'</span></div><div class="venn">'+vG.svg+'</div></div></div>';
+ h+='<div class="sec"><div class="sec-h">'+ic('users')+'<div class="sec-t">'+tx('followBoth')+'</div><span class="pill">'+vF.both.length+'</span></div>'+(vF.both.length?grid(vF.both):'<div class="card"><span class="empty">'+tx('noSharedF')+'</span></div>')+'</div>';
+ h+='<div class="sec"><div class="sec-h">'+ic('userplus')+'<div class="sec-t">'+tx('bothFollow')+'</div><span class="pill">'+vG.both.length+'</span></div>'+(vG.both.length?grid(vG.both):'<div class="card"><span class="empty">'+tx('noSharedG')+'</span></div>')+'</div>';
  out.innerHTML=h;}
-// build
-const names=Object.keys(DATA.targets),accts=document.getElementById('accts'),main=document.getElementById('main');
-if(!names.length)main.innerHTML='<div class="card" style="margin-top:24px"><span class="empty">No data yet. Click Refresh at the top right.</span></div>';
-else{names.forEach((n,i)=>{const disp=DATA.targets[n].display||n;const a=document.createElement('div');a.className='acct'+(i?'':' on');a.dataset.n=n;
- a.innerHTML='<span class="am">'+ini(disp)+'</span><span class="nm">@'+disp+'</span>';a.onclick=()=>show(n);accts.appendChild(a);
- const p=document.createElement('div');p.className='panel'+(i?'':' on');p.id='pn_'+n;p.innerHTML=panel(n);main.appendChild(p);});
- if(names.length>=2){const ca=document.createElement('div');ca.className='acct';ca.dataset.n='__cmp__';
-  ca.innerHTML='<span class="am">'+ic('compare')+'</span><span class="nm">Compare</span>';ca.onclick=()=>show('__cmp__');accts.appendChild(ca);
-  const cp=document.createElement('div');cp.className='panel';cp.id='pn___cmp__';cp.innerHTML=comparePanel();main.appendChild(cp);
-  document.getElementById('cmpB').selectedIndex=1;runCompare();}
- const first=document.querySelector('.panel.on');if(first){countUp(first);animDonut(first);}}
+// static chrome that lives outside the panels
+function paintChrome(){document.documentElement.lang=LANG;
+ document.getElementById('gs').placeholder=tx('search');
+ document.getElementById('updl').textContent=tx('updated');
+ const rf=document.getElementById('rf');if(!rf.disabled)rf.querySelector('.t').textContent=tx('refresh');
+ document.getElementById('tg').title=tx('theme');document.querySelector('.ghub').title=tx('github');
+ const lg=document.getElementById('lg');lg.title=tx('language');lg.setAttribute('aria-label',tx('language'));
+ if(!lg.options.length)LANGS.forEach(([c,n])=>{const o=document.createElement('option');o.value=c;o.textContent=n;lg.appendChild(o);});
+ lg.value=LANG;document.getElementById('foot').textContent=tx('footer');}
+// build: re-runnable, so a language switch can redraw every panel
+function build(){
+ document.getElementById('accts').innerHTML='';document.getElementById('main').innerHTML='';
+ const names=Object.keys(DATA.targets),accts=document.getElementById('accts'),main=document.getElementById('main');
+ if(!names.length)main.innerHTML='<div class="card" style="margin-top:24px"><span class="empty">'+tx('noData')+'</span></div>';
+ else{names.forEach((n,i)=>{const disp=DATA.targets[n].display||n;const a=document.createElement('div');a.className='acct'+(i?'':' on');a.dataset.n=n;
+  a.innerHTML='<span class="am">'+ini(disp)+'</span><span class="nm">@'+disp+'</span>';a.onclick=()=>show(n);accts.appendChild(a);
+  const p=document.createElement('div');p.className='panel'+(i?'':' on');p.id='pn_'+n;p.innerHTML=panel(n);main.appendChild(p);});
+  if(names.length>=2){const ca=document.createElement('div');ca.className='acct';ca.dataset.n='__cmp__';
+   ca.innerHTML='<span class="am">'+ic('compare')+'</span><span class="nm">'+tx('compare')+'</span>';ca.onclick=()=>show('__cmp__');accts.appendChild(ca);
+   const cp=document.createElement('div');cp.className='panel';cp.id='pn___cmp__';cp.innerHTML=comparePanel();main.appendChild(cp);
+   document.getElementById('cmpB').selectedIndex=1;runCompare();}
+  const first=document.querySelector('.panel.on');if(first){countUp(first);animDonut(first);}}
+}
+function setLang(c){if(!I18N[c])return;LANG=c;try{localStorage.setItem('fl-lang',c);}catch(e){}
+ const on=document.querySelector('.acct.on'),keep=on?on.dataset.n:null;
+ paintChrome();build();if(keep&&document.getElementById('pn_'+keep))show(keep);}
+paintChrome();build();
 </script></body></html>
 """
 
 
 def generate() -> Path:
     data = collect_data()
-    html = TPL.replace("__GEN__", data["generated_at"]).replace("__DATA__", json.dumps(data, ensure_ascii=False))
+    html = (TPL.replace("__GEN__", data["generated_at"])
+            .replace("__I18N__", json.dumps(i18n.table(), ensure_ascii=False))
+            .replace("__LANGS__", json.dumps(i18n.LANGS, ensure_ascii=False))
+            .replace("__DATA__", json.dumps(data, ensure_ascii=False)))
     OUT.write_text(html, encoding="utf-8")
     return OUT
 

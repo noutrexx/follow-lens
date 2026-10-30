@@ -154,10 +154,10 @@ class IGWeb:
             _sleep(self.delay, self.jitter)
         return out
 
-    def following(self, uid: str, max_passes: int = 3) -> dict[str, str]:
+    def following(self, uid: str, max_passes: int = 4) -> dict[str, str]:
         """Return the full following list as ``{user_id: username}``."""
         return self._collect(uid, "following", 200, max_passes)
 
-    def followers(self, uid: str, max_passes: int = 3) -> dict[str, str]:
+    def followers(self, uid: str, max_passes: int = 4) -> dict[str, str]:
         """Return the full followers list as ``{user_id: username}``."""
         return self._collect(uid, "followers", 100, max_passes)

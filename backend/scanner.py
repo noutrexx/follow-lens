@@ -51,7 +51,7 @@ def run_scan(force: bool = False) -> dict:
 
     delay = float(cfg.get("delay_seconds", 3.0))
     jitter = float(cfg.get("delay_jitter_seconds", 2.5))
-    max_passes = int(cfg.get("followers_max_passes", 3))
+    max_passes = int(cfg.get("followers_max_passes", 4))
     me_username = cfg["username"]
     targets = cfg.get("targets", ["self"])
     known = dict(cfg.get("known_ids", {}))

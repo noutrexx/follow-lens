@@ -18,5 +18,5 @@
   "delay_seconds": 3.0,
   "delay_jitter_seconds": 2.5,
   "min_scan_interval_seconds": 600,
-  "followers_max_passes": 3
+  "followers_max_passes": 4
 }

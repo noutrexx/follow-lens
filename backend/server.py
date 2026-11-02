@@ -6,7 +6,6 @@ scan directly:  curl -X POST http://localhost:5005/scan
 """
 from __future__ import annotations
 
-import json
 import threading
 from pathlib import Path
 
@@ -90,8 +89,10 @@ def health():
 
 
 def main() -> None:
-    with open(ROOT / "config.json", encoding="utf-8") as f:
-        port = int(json.load(f).get("port", 5005))
+    try:
+        port = int(scanner.load_config().get("port", 5005))
+    except scanner.ConfigError as e:
+        raise SystemExit(f"\n  FollowLens cannot start: {e}\n") from None
     # Rebuild on every start, not only when the file is missing: the dashboard is
     # generated code, and after an update the old copy would otherwise linger
     # until the next successful scan. It only reads local snapshots, so it is cheap.

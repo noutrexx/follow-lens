@@ -267,6 +267,38 @@ class CooldownTests(unittest.TestCase):
         scanner.run_scan(force=True)
         self.assertTrue(scanner.LAST_SCAN.exists())
 
+
+class ConfigTests(unittest.TestCase):
+    """A bad config.json must come back as a sentence, never as a 500."""
+
+    def setUp(self):
+        import tempfile
+        self.tmp = Path(tempfile.mkdtemp())
+        self.real_root = scanner.ROOT
+        scanner.ROOT = self.tmp
+
+    def tearDown(self):
+        scanner.ROOT = self.real_root
+
+    def _write(self, text):
+        (self.tmp / "config.json").write_text(text, encoding="utf-8")
+
+    def test_missing_file_explains_how_to_create_it(self):
+        result = scanner.run_scan(force=True)
+        self.assertFalse(result["ok"])
+        self.assertIn("config.example.json", result["error"])
+
+    def test_broken_json_points_at_the_line(self):
+        self._write('{"sessionid": "x",, }')
+        result = scanner.run_scan(force=True)
+        self.assertFalse(result["ok"])
+        self.assertIn("line 1", result["error"])
+
+    def test_username_is_optional(self):
+        self._write('{"sessionid": "1%3Ax", "targets": []}')
+        result = scanner.run_scan(force=True)
+        self.assertTrue(result["ok"])
+
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):
         client = igweb.IGWeb("42120983%3Ademosession%3A17")

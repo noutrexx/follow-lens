@@ -14,9 +14,21 @@ ROOT = Path(__file__).resolve().parents[1]
 LAST_SCAN = ROOT / "data" / ".last_scan"
 
 
+class ConfigError(Exception):
+    """config.json is missing or unreadable; the message says how to fix it."""
+
+
 def load_config() -> dict:
-    with open(ROOT / "config.json", encoding="utf-8") as f:
-        return json.load(f)
+    path = ROOT / "config.json"
+    try:
+        with open(path, encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        raise ConfigError("config.json not found. Copy config.example.json to config.json "
+                          "and paste your sessionid into it.") from None
+    except json.JSONDecodeError as e:
+        raise ConfigError(f"config.json is not valid JSON: {e.msg} at line {e.lineno}, "
+                          f"column {e.colno}.") from None
 
 
 def _read_last() -> float:
@@ -35,7 +47,10 @@ def session_error(exc: Exception, scanned: list[str]) -> str:
 
 
 def run_scan(force: bool = False) -> dict:
-    cfg = load_config()
+    try:
+        cfg = load_config()
+    except ConfigError as e:
+        return {"ok": False, "error": str(e)}
     sessionid = cfg.get("sessionid", "").strip()
     if not sessionid:
         return {"ok": False, "error": "No sessionid. Add your session key to config.json (see README)."}
@@ -52,7 +67,7 @@ def run_scan(force: bool = False) -> dict:
     delay = float(cfg.get("delay_seconds", 3.0))
     jitter = float(cfg.get("delay_jitter_seconds", 2.5))
     max_passes = int(cfg.get("followers_max_passes", 4))
-    me_username = cfg["username"]
+    me_username = cfg.get("username") or "self"
     targets = cfg.get("targets", ["self"])
     known = dict(cfg.get("known_ids", {}))
 

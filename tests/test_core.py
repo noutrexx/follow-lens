@@ -40,6 +40,10 @@ class _StubResponse:
     def json(self):
         return self._payload
 
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise RuntimeError(f"HTTP {self.status_code}")
+
 
 class _StubSession:
     """Stands in for ``requests.Session``, replaying a queued list of responses."""
@@ -298,6 +302,28 @@ class ConfigTests(unittest.TestCase):
         self._write('{"sessionid": "1%3Ax", "targets": []}')
         result = scanner.run_scan(force=True)
         self.assertTrue(result["ok"])
+
+
+class LookupTests(unittest.TestCase):
+    """A misspelled target should say so, whichever way Instagram reports it."""
+
+    def _client(self, response):
+        client = igweb.IGWeb("1%3Ax", delay=0, jitter=0)
+        client.session = _StubSession([response])
+        return client
+
+    def test_404_names_the_account(self):
+        with self.assertRaises(LookupError) as ctx:
+            self._client(_StubResponse(404)).resolve_uid("no.such.user")
+        self.assertIn("@no.such.user", str(ctx.exception))
+
+    def test_empty_user_names_the_account(self):
+        with self.assertRaises(LookupError):
+            self._client(_StubResponse(200, {"data": {"user": None}})).resolve_uid("no.such.user")
+
+    def test_known_account_resolves(self):
+        found = self._client(_StubResponse(200, {"data": {"user": {"id": 42}}})).resolve_uid("real")
+        self.assertEqual(found, {"id": "42"})
 
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):

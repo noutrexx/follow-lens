@@ -103,8 +103,15 @@ class IGWeb:
             "https://www.instagram.com/api/v1/users/web_profile_info/",
             {"username": username},
         )
+        # An unknown name comes back either as a 404 or as a 200 with no user in it.
+        missing = LookupError(f"No Instagram account is called @{username}. "
+                              "Check the spelling in the targets list of config.json.")
+        if resp.status_code == 404:
+            raise missing
         resp.raise_for_status()
-        user = resp.json()["data"]["user"]
+        user = (resp.json().get("data") or {}).get("user")
+        if not user:
+            raise missing
         return {"id": str(user["id"])}
 
     def _page(self, uid: str, kind: str, max_id, count: int):

@@ -14,7 +14,7 @@ KEYS = [
     "noChanges", "noData", "none", "pickTwo", "noSharedF", "noSharedG",
     "sharedFollowers", "sharedFollowing", "followBoth", "bothFollow", "shared",
     "sort", "newest", "az", "show", "exported",
-    "recipSelfA", "recipSelfB", "recipOtherA", "recipOtherB", "footer", "noServer", "scanNothing",
+    "recipSelfA", "recipSelfB", "recipOtherA", "recipOtherB", "footer", "noServer", "scanNothing", "older",
 ]
 
 T = {
@@ -34,6 +34,7 @@ T = {
         "local only · no data leaves this machine",
         "Cannot reach the server — is run.py running?",
         "The scan finished without reading any account.",
+        "Older scans ({n})",
     ],
     "tr": [
         "Yenile", "Taranıyor...", "Güncellendi", "kullanıcı adı ara…",
@@ -57,6 +58,7 @@ T = {
         "yalnızca yerel · veri bu makineden çıkmaz",
         "Sunucuya ulaşılamıyor — run.py çalışıyor mu?",
         "Tarama hiçbir hesabı okuyamadan bitti.",
+        "Eski taramalar ({n})",
     ],
     "zh": [
         "刷新", "扫描中...", "更新于", "搜索用户名…", "切换主题 (T)", "GitHub", "语言",
@@ -74,6 +76,7 @@ T = {
         "仅本地 · 数据不会离开这台电脑",
         "无法连接服务器 — run.py 是否在运行？",
         "扫描结束，但没有读取到任何账号。",
+        "更早的扫描（{n}）",
     ],
     "es": [
         "Actualizar", "Escaneando...", "Actualizado", "buscar usuario…", "Cambiar tema (T)", "GitHub", "Idioma",
@@ -92,6 +95,7 @@ T = {
         "solo local · los datos no salen de este equipo",
         "No se puede conectar con el servidor: ¿se está ejecutando run.py?",
         "El escaneo terminó sin leer ninguna cuenta.",
+        "Escaneos anteriores ({n})",
     ],
     "de": [
         "Aktualisieren", "Scannt...", "Aktualisiert", "Nutzername suchen…", "Theme wechseln (T)", "GitHub", "Sprache",
@@ -111,6 +115,7 @@ T = {
         "nur lokal · Daten verlassen dieses Gerät nicht",
         "Server nicht erreichbar – läuft run.py?",
         "Der Scan endete, ohne ein Konto zu lesen.",
+        "Ältere Scans ({n})",
     ],
     "fr": [
         "Actualiser", "Analyse...", "Mis à jour", "chercher un compte…", "Changer de thème (T)", "GitHub", "Langue",
@@ -130,6 +135,7 @@ T = {
         "local uniquement · les données restent sur cette machine",
         "Serveur injoignable — run.py est-il lancé ?",
         "L’analyse s’est terminée sans lire aucun compte.",
+        "Analyses plus anciennes ({n})",
     ],
     "ru": [
         "Обновить", "Сканирование...", "Обновлено", "поиск по имени…", "Сменить тему (T)", "GitHub", "Язык",
@@ -148,6 +154,7 @@ T = {
         "только локально · данные не покидают этот компьютер",
         "Сервер недоступен — запущен ли run.py?",
         "Скан завершился, не прочитав ни одного аккаунта.",
+        "Более ранние сканы ({n})",
     ],
     "ja": [
         "更新", "スキャン中...", "更新", "ユーザー名を検索…", "テーマ切替 (T)", "GitHub", "言語",
@@ -166,6 +173,7 @@ T = {
         "ローカルのみ · データはこの端末から出ません",
         "サーバーに接続できません — run.py は起動していますか？",
         "スキャンは終了しましたが、アカウントを 1 つも読み取れませんでした。",
+        "以前のスキャン（{n}）",
     ],
 }
 

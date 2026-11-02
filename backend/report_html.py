@@ -295,7 +295,7 @@ tailwind.config = {
  .ulist a:hover{@apply border-line2;background:var(--hover);}
  .ulist .gm{@apply flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold uppercase text-white;background:var(--grad);}
  .empty{@apply text-[13px] italic text-faint;}
- details{@apply mt-1.5;} summary{@apply cursor-pointer list-none;} summary::-webkit-details-marker{display:none;}
+ details{@apply mt-1.5;} details.older>summary{@apply mb-3;} summary{@apply cursor-pointer list-none;} summary::-webkit-details-marker{display:none;}
  .more{@apply inline-flex items-center gap-1.5 py-1.5 text-[13px] font-bold text-accent;}
  details[open] .more .ic{transform:rotate(180deg);}
  .sortbar{@apply mb-3 mt-0.5 inline-flex items-center gap-1.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-faint;}
@@ -431,10 +431,10 @@ function undone(d){const out=new Set(),h=d.history;
   for(let j=0;j<i;j++)h[j].added.forEach(u=>back.add(u));
   h[i].removed.forEach(u=>{if(back.has(u))out.add(h[i].at+'|'+u);});}
  return out;}
-function timeline(d,kind,gone){const undo=undone(d);const items=d.history.slice(0,12);
+function timeline(d,kind,gone){const undo=undone(d),items=d.history;
  if(!items.length)return '<div class="card"><span class="empty">'+tx('noChanges')+'</span></div>';
  const L=kind==='followers'?{a:tx('nNewFollower'),r:tx('nUnfollowed')}:{a:tx('nNowFollowing'),r:tx('nStopped')};
- return items.map(h=>{
+ const pane=h=>{
   const has=((h.added.length?'new ':'')+(h.removed.length?'rem':'')).trim();
   let s='<div class="scan" data-has="'+has+'"><div class="scan-h">'
    +'<span class="lights"><i></i><i></i><i></i></span>'
@@ -446,7 +446,12 @@ function timeline(d,kind,gone){const undo=undone(d);const items=d.history.slice(
    if(gone&&gone.has(key))s+=row(u,'gone',tx('nGone'));
    else if(undo.has(key))s+=row(u,'back',tx('nBack'));
    else s+=row(u,'rem',L.r);});
-  return s+'</div></div>';}).join('');}
+  return s+'</div></div>';};
+ // The latest scans stay open; older ones fold away instead of disappearing.
+ const SHOWN=12,rest=items.slice(SHOWN);
+ return items.slice(0,SHOWN).map(pane).join('')
+  +(rest.length?'<details class="older"><summary><div class="more">'+tx('older',{n:rest.length})+' '+ic('chev')
+   +'</div></summary>'+rest.map(pane).join('')+'</details>':'');}
 const row=(u,c,note)=>'<a class="chip '+c+'" data-u="'+u+'" href="'+igl(u)+'" target="_blank">'
  +'<span class="usr">@'+u+'</span><span class="note">'+note+'</span></a>';
 function grid(list,id){return '<div class="ulist"'+(id?' id="'+id+'"':'')+'>'+list.map((u,i)=>'<a data-u="'+u+'" data-i="'+i+'" href="'+igl(u)+'" target="_blank"><span class="gm">'+ini(u)+'</span>@'+u+'</a>').join('')+'</div>';}

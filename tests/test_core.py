@@ -213,6 +213,60 @@ class ScanEndpointTests(unittest.TestCase):
         self.assertEqual(self.client.post("/scan").status_code, 200)
         self.assertEqual(self.calls, 1)
 
+
+class CooldownTests(unittest.TestCase):
+    """A scan only counts towards the cooldown if it actually read an account."""
+
+    def setUp(self):
+        import tempfile
+        self.tmp = Path(tempfile.mkdtemp())
+        self.saved = {name: getattr(scanner, name) for name in ("load_config", "LAST_SCAN")}
+        self.saved_ig = scanner.igweb.IGWeb
+        self.saved_gen = scanner.report_html.generate
+        self.saved_store = (scanner.storage.latest_snapshot, scanner.storage.save_snapshot)
+        scanner.LAST_SCAN = self.tmp / ".last_scan"
+        scanner.load_config = lambda: {"sessionid": "1%3Ax", "username": "me", "targets": ["a", "b"],
+                                       "known_ids": {"a": "1", "b": "2"}}
+        scanner.report_html.generate = lambda: None
+        scanner.storage.latest_snapshot = lambda *a: None
+        scanner.storage.save_snapshot = lambda *a: None
+
+    def tearDown(self):
+        for name, value in self.saved.items():
+            setattr(scanner, name, value)
+        scanner.igweb.IGWeb = self.saved_ig
+        scanner.report_html.generate = self.saved_gen
+        scanner.storage.latest_snapshot, scanner.storage.save_snapshot = self.saved_store
+
+    def _client(self, fail):
+        class Fake:
+            self_id = "1"
+
+            def __init__(self, *a, **k):
+                pass
+
+            def resolve_uid(self, name):
+                return {"id": "1"}
+
+            def following(self, uid, max_passes=4):
+                if fail:
+                    raise igweb.SessionRejected("401.")
+                return {"10": "x"}
+
+            followers = following
+        scanner.igweb.IGWeb = Fake
+
+    def test_failed_run_leaves_the_cooldown_alone(self):
+        self._client(fail=True)
+        result = scanner.run_scan(force=True)
+        self.assertTrue(all("error" in t for t in result["targets"]))
+        self.assertFalse(scanner.LAST_SCAN.exists())
+
+    def test_successful_run_starts_the_cooldown(self):
+        self._client(fail=False)
+        scanner.run_scan(force=True)
+        self.assertTrue(scanner.LAST_SCAN.exists())
+
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):
         client = igweb.IGWeb("42120983%3Ademosession%3A17")

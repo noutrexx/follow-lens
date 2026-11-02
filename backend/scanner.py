@@ -92,9 +92,13 @@ def run_scan(force: bool = False) -> dict:
         scanned.append(t)
         summary["targets"].append({"target": t, "changes": changes})
 
-    LAST_SCAN.parent.mkdir(parents=True, exist_ok=True)
-    LAST_SCAN.write_text(str(time.time()))
-    report_html.generate()
+    # A run that read nothing spent no real budget and changed no data, so it
+    # must not start the cooldown: the usual cause is an expired session, and
+    # the user should be able to retry the moment they paste a new one.
+    if scanned:
+        LAST_SCAN.parent.mkdir(parents=True, exist_ok=True)
+        LAST_SCAN.write_text(str(time.time()))
+        report_html.generate()
     return summary
 
 

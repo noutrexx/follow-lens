@@ -58,8 +58,23 @@ def og():
     return send_file(FRONTEND / "og.svg")
 
 
-@app.route("/scan", methods=["POST", "GET"])
+def _same_origin() -> bool:
+    """Refuse scans started by some other site the browser happens to have open.
+
+    A cross-site request always carries Origin (or at least Sec-Fetch-Site), so
+    a page elsewhere cannot fire one through an <img> or a hidden form. curl and
+    other local tools send neither header and stay allowed.
+    """
+    origin = request.headers.get("Origin")
+    if origin is not None:
+        return origin.rstrip("/") == request.host_url.rstrip("/")
+    return request.headers.get("Sec-Fetch-Site") in (None, "same-origin", "none")
+
+
+@app.route("/scan", methods=["POST"])
 def scan():
+    if not _same_origin():
+        return jsonify({"ok": False, "error": "Scans can only be started from this dashboard."}), 403
     if not _lock.acquire(blocking=False):
         return jsonify({"ok": False, "error": "A scan is already running."}), 409
     force = request.args.get("force") in ("1", "true", "yes")

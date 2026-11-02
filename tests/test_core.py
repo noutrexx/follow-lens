@@ -170,6 +170,49 @@ class LandingTranslationTests(unittest.TestCase):
         used = set(re.findall(r'data-i18n(?:-alt)?="([a-z0-9_]+)"', html))
         self.assertEqual(used, set(i18n.LANDING_KEYS))
 
+
+class ScanEndpointTests(unittest.TestCase):
+    """Only this dashboard, or a local tool, may start a scan."""
+
+    def setUp(self):
+        import server
+        self.server = server
+        self.calls = 0
+
+        def fake_scan(force=False):
+            self.calls += 1
+            return {"ok": True, "targets": []}
+
+        self.real = server.scanner.run_scan
+        server.scanner.run_scan = fake_scan
+        self.client = server.app.test_client()
+
+    def tearDown(self):
+        self.server.scanner.run_scan = self.real
+
+    def test_get_is_refused(self):
+        self.assertEqual(self.client.get("/scan").status_code, 405)
+        self.assertEqual(self.calls, 0)
+
+    def test_foreign_origin_is_refused(self):
+        r = self.client.post("/scan", headers={"Origin": "https://evil.example"})
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(self.calls, 0)
+
+    def test_cross_site_fetch_is_refused(self):
+        r = self.client.post("/scan", headers={"Sec-Fetch-Site": "cross-site"})
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(self.calls, 0)
+
+    def test_dashboard_origin_is_allowed(self):
+        r = self.client.post("/scan", headers={"Origin": "http://localhost"})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.calls, 1)
+
+    def test_local_tool_without_headers_is_allowed(self):
+        self.assertEqual(self.client.post("/scan").status_code, 200)
+        self.assertEqual(self.calls, 1)
+
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):
         client = igweb.IGWeb("42120983%3Ademosession%3A17")

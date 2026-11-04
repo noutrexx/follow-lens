@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -15,24 +16,34 @@ def _dir(target: str) -> Path:
 
 
 def latest_snapshot(target: str, kind: str) -> dict | None:
-    """Return the most recent snapshot for ``target``/``kind``, or ``None``."""
-    files = sorted(_dir(target).glob(f"{kind}_*.json"))
-    if not files:
-        return None
-    with open(files[-1], encoding="utf-8") as f:
-        return json.load(f)
+    """Return the most recent readable snapshot for ``target``/``kind``, or ``None``.
+
+    An unreadable file is skipped rather than raised: if it were the newest one,
+    every later scan of the account would fail on it until someone deleted it.
+    """
+    for path in sorted(_dir(target).glob(f"{kind}_*.json"), reverse=True):
+        try:
+            with open(path, encoding="utf-8") as f:
+                return json.load(f)
+        except (OSError, ValueError):
+            continue
+    return None
 
 
 def save_snapshot(target: str, kind: str, users: dict[str, str]) -> Path:
     """Write a timestamped snapshot and return its path."""
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     path = _dir(target) / f"{kind}_{ts}.json"
-    with open(path, "w", encoding="utf-8") as f:
+    # Write beside the target and swap it in, so a process killed mid-write leaves
+    # a stray .tmp (which nothing reads) instead of a truncated snapshot.
+    tmp = path.with_name(path.name + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
         json.dump({
             "target": target, "kind": kind,
             "captured_at": datetime.now().isoformat(timespec="seconds"),
             "count": len(users), "users": users,
         }, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, path)
     return path
 
 

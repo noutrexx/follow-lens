@@ -325,6 +325,35 @@ class LookupTests(unittest.TestCase):
         found = self._client(_StubResponse(200, {"data": {"user": {"id": 42}}})).resolve_uid("real")
         self.assertEqual(found, {"id": "42"})
 
+
+class SnapshotDurabilityTests(unittest.TestCase):
+    """A half-written snapshot must never lock an account out of scanning."""
+
+    def setUp(self):
+        import tempfile
+        self.real = storage.DATA_DIR
+        storage.DATA_DIR = Path(tempfile.mkdtemp())
+
+    def tearDown(self):
+        storage.DATA_DIR = self.real
+
+    def test_save_leaves_no_temp_file_behind(self):
+        path = storage.save_snapshot("acct", "followers", {"1": "alice"})
+        self.assertTrue(path.exists())
+        self.assertEqual(list(path.parent.glob("*.tmp")), [])
+
+    def test_truncated_newest_snapshot_is_skipped(self):
+        storage.save_snapshot("acct", "followers", {"1": "alice", "2": "bob"})
+        broken = storage.DATA_DIR / "acct" / "followers_29991231_235959.json"
+        broken.write_text('{"users": {"1": "al', encoding="utf-8")
+        latest = storage.latest_snapshot("acct", "followers")
+        self.assertEqual(latest["users"], {"1": "alice", "2": "bob"})
+
+    def test_leftover_temp_file_is_not_mistaken_for_a_snapshot(self):
+        storage.save_snapshot("acct", "followers", {"1": "alice"})
+        (storage.DATA_DIR / "acct" / "followers_29991231_235959.json.tmp").write_text("{", encoding="utf-8")
+        self.assertEqual(storage.latest_snapshot("acct", "followers")["users"], {"1": "alice"})
+
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):
         client = igweb.IGWeb("42120983%3Ademosession%3A17")

@@ -200,6 +200,25 @@ curl -X POST "http://localhost:5005/scan?force=1"
 | `min_scan_interval_seconds` | Cooldown between full scans. Default 600. |
 | `followers_max_passes` | Maximum union passes per friendship list. Both lists stop early once a pass adds nothing new, so a settled list costs one extra pass. Raise it if scans keep reporting the same accounts as leaving and returning. |
 
+## Troubleshooting
+
+Every failure is reported per account, in the toast after **Refresh** or in the JSON from `/scan`. The wording tells you which problem you have.
+
+| Message contains | What it means | What to do |
+| --- | --- | --- |
+| *No account could be read, so the sessionid has most likely expired* | Instagram refused every account in the run. | Copy a fresh `sessionid` into `config.json`. No restart is needed; the next scan reads it. |
+| *The session itself works … Instagram is refusing this account for now* | Another account was read in the same run, so the cookie is fine. Instagram is limiting this one account. | Do not fetch a new cookie. Wait a few hours, then retry. |
+| *429 … too many scans today* | Instagram is rate-limiting the session as a whole. | Stop for about half an hour. Retrying sooner makes it worse. |
+| *Cooldown active: try again in …* | Less than `min_scan_interval_seconds` has passed since the last scan that read something. | Wait it out. `?force=1` skips it, but spends requests you may need later. |
+| *config.json not found* / *not valid JSON at line …* | The config is missing or has a syntax error. | Copy `config.example.json`, or fix the reported line and column. |
+| *No Instagram account is called @…* | A name in `targets` is misspelled or the account no longer exists. | Correct it in `config.json`. |
+| *Cannot reach the server* | The page is open but `run.py` is not running. | Start it again. |
+| *Scans can only be started from this dashboard* | A request came from another site, or a tool sent a foreign `Origin`. | Use the Refresh button or plain `curl -X POST`. |
+
+A failed run never starts the cooldown, so after fixing the cause you can scan again straight away.
+
+If the same accounts keep leaving and coming back between scans, that is the list endpoints being unstable rather than real activity; see [Reading a removal](#reading-a-removal). Raising `followers_max_passes` reduces it at the cost of a few more requests.
+
 ## Privacy and safety
 
 - **Local only.** Snapshots and your session cookie live in `data/` and `config.json`, both git-ignored. Nothing is uploaded.

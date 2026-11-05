@@ -524,6 +524,7 @@ function expt(name){const t=DATA.targets[name],disp=t.display||name;
  const b=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');
  a.href=URL.createObjectURL(b);a.download='followlens_'+disp+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast(tx('exported')+' @'+disp+'.json');}
 function scan(){const b=document.getElementById('rf'),t=b.querySelector('.t');
+ if(b.disabled)return;
  const reset=()=>{b.disabled=false;b.classList.remove('spin');t.textContent=tx('refresh');};
  b.disabled=true;b.classList.add('spin');t.textContent=tx('scanning');
  fetch('/scan',{method:'POST'}).then(r=>r.json()).then(j=>{
@@ -542,10 +543,17 @@ function show(name){document.querySelectorAll('.acct').forEach(x=>x.classList.to
  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));const p=document.getElementById('pn_'+name);p.classList.add('on');
  countUp(p);animDonut(p);window.scrollTo({top:0,behavior:'smooth'});}
 // keyboard
-document.addEventListener('keydown',e=>{if(e.key==='/'&&document.activeElement.id!=='gs'){e.preventDefault();document.getElementById('gs').focus();}
+// Shortcuts are bare keys only. Ctrl/Cmd+R is the browser's reload and must not
+// also start a scan, and neither must typing into a field: the language picker
+// jumps to an option as you type, so an "r" there would otherwise scan.
+document.addEventListener('keydown',e=>{
+ if(e.ctrlKey||e.metaKey||e.altKey)return;
+ const el=document.activeElement,typing=!!el&&(/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)||el.isContentEditable);
+ if(e.key==='/'&&el.id!=='gs'){e.preventDefault();document.getElementById('gs').focus();}
  else if(e.key==='Escape'){const g=document.getElementById('gs');g.value='';gsearch('');g.blur();}
- else if((e.key==='r'||e.key==='R')&&!/input/i.test(document.activeElement.tagName)){scan();}
- else if((e.key==='t'||e.key==='T')&&!/input/i.test(document.activeElement.tagName)){toggleTheme();}});
+ else if(typing)return;
+ else if((e.key==='r'||e.key==='R')&&!e.repeat){scan();}
+ else if(e.key==='t'||e.key==='T'){toggleTheme();}});
 // ---- compare ----
 const interU=(a,b)=>{const s=new Set(b.map(x=>x.toLowerCase()));return a.filter(x=>s.has(x.toLowerCase()));};
 function venn(dispA,dispB,A,B){const both=interU(A,B),oa=A.length-both.length,ob=B.length-both.length;

@@ -126,8 +126,22 @@ class IGWeb:
                 f"{kind} page for {uid} returned HTTP {resp.status_code}; "
                 "aborting so a partial list is not stored as a full one."
             )
-        body = resp.json()
-        items = [(str(u["pk"]), u["username"]) for u in body.get("users", [])]
+        # A 200 is not proof of a page. Instagram also answers 200 with a login page
+        # (HTML) or with {"status": "fail", "message": "Please wait a few minutes"},
+        # and reading either as an empty page would end the walk early and store a
+        # partial list as complete - every missing account reported as an unfollow.
+        try:
+            body = resp.json()
+        except ValueError:
+            raise FetchError(
+                f"{kind} page for {uid} was not JSON (Instagram usually serves a login page "
+                "here when the session is no longer accepted); aborting."
+            ) from None
+        if body.get("status") == "fail" or "users" not in body:
+            reason = body.get("message") or "the response carried no user list"
+            raise FetchError(f"{kind} page for {uid} was refused: {reason}; aborting so a partial "
+                             "list is not stored as a full one.")
+        items = [(str(u["pk"]), u["username"]) for u in body["users"]]
         return items, body.get("next_max_id")
 
     def _walk(self, uid: str, kind: str, count: int) -> dict[str, str]:

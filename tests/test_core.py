@@ -354,6 +354,37 @@ class SnapshotDurabilityTests(unittest.TestCase):
         (storage.DATA_DIR / "acct" / "followers_29991231_235959.json.tmp").write_text("{", encoding="utf-8")
         self.assertEqual(storage.latest_snapshot("acct", "followers")["users"], {"1": "alice"})
 
+
+class SoftFailureTests(unittest.TestCase):
+    """A 200 that is not a page of users must abort, never read as an empty page."""
+
+    def _client(self, response):
+        client = igweb.IGWeb("1%3Ax", delay=0, jitter=0)
+        client.session = _StubSession([response] * 8)
+        return client
+
+    def test_status_fail_aborts(self):
+        wait = _StubResponse(200, {"status": "fail", "message": "Please wait a few minutes before you try again."})
+        with self.assertRaises(igweb.FetchError) as ctx:
+            self._client(wait).followers("42")
+        self.assertIn("Please wait a few minutes", str(ctx.exception))
+
+    def test_body_without_users_aborts(self):
+        with self.assertRaises(igweb.FetchError):
+            self._client(_StubResponse(200, {"status": "ok"})).following("42")
+
+    def test_html_instead_of_json_aborts(self):
+        class Html(_StubResponse):
+            def json(self):
+                raise ValueError("Expecting value")
+        with self.assertRaises(igweb.FetchError) as ctx:
+            self._client(Html(200)).following("42")
+        self.assertIn("login page", str(ctx.exception))
+
+    def test_an_account_with_no_followers_is_still_fine(self):
+        empty = _StubResponse(200, {"status": "ok", "users": [], "next_max_id": None})
+        self.assertEqual(self._client(empty).followers("42"), {})
+
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):
         client = igweb.IGWeb("42120983%3Ademosession%3A17")

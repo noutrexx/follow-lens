@@ -209,6 +209,8 @@ Every failure is reported per account, in the toast after **Refresh** or in the 
 | *No account could be read, so the sessionid has most likely expired* | Instagram refused every account in the run. | Copy a fresh `sessionid` into `config.json`. No restart is needed; the next scan reads it. |
 | *The session itself works … Instagram is refusing this account for now* | Another account was read in the same run, so the cookie is fine. Instagram is limiting this one account. | Do not fetch a new cookie. Wait a few hours, then retry. |
 | *429 … too many scans today* | Instagram is rate-limiting the session as a whole. | Stop for about half an hour. Retrying sooner makes it worse. |
+| *… page … was refused: Please wait a few minutes* | Instagram rate-limited the session quietly, with a normal-looking response instead of a 429. The scan stopped before saving anything. | Treat it like a 429: wait, then retry. |
+| *… page … was not JSON* | Instagram served a login page instead of data, which means it no longer accepts the session. | Copy a fresh `sessionid` into `config.json`. |
 | *Cooldown active: try again in …* | Less than `min_scan_interval_seconds` has passed since the last scan that read something. | Wait it out. `?force=1` skips it, but spends requests you may need later. |
 | *config.json not found* / *not valid JSON at line …* | The config is missing or has a syntax error. | Copy `config.example.json`, or fix the reported line and column. |
 | *No Instagram account is called @…* | A name in `targets` is misspelled or the account no longer exists. | Correct it in `config.json`. |

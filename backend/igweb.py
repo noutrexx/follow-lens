@@ -25,6 +25,10 @@ class RateLimited(Exception):
     """Raised when Instagram keeps returning HTTP 429 after retries."""
 
 
+class NetworkError(Exception):
+    """Instagram could not be reached at all, so nothing was read or saved."""
+
+
 class SessionRejected(PermissionError):
     """Raised when Instagram answers 401.
 
@@ -82,7 +86,16 @@ class IGWeb:
         """GET with up to two backoff retries on HTTP 429."""
         last = None
         for attempt in range(3):
-            resp = self.session.get(url, params=params, timeout=30)
+            try:
+                resp = self.session.get(url, params=params, timeout=30)
+            # requests describes these with a full urllib3 repr (pool, url, object
+            # address); the user only needs to know the network was the problem.
+            except requests.Timeout:
+                raise NetworkError("Instagram did not answer within 30 seconds. "
+                                   "Check the connection and try again.") from None
+            except requests.ConnectionError:
+                raise NetworkError("Could not reach Instagram. "
+                                   "Check the internet connection and try again.") from None
             if resp.status_code == 429:
                 last = resp
                 if attempt < 2:

@@ -385,6 +385,31 @@ class SoftFailureTests(unittest.TestCase):
         empty = _StubResponse(200, {"status": "ok", "users": [], "next_max_id": None})
         self.assertEqual(self._client(empty).followers("42"), {})
 
+
+class NetworkErrorTests(unittest.TestCase):
+    """Losing the connection should read as that, not as a urllib3 traceback."""
+
+    def _client(self, exc):
+        client = igweb.IGWeb("1%3Ax", delay=0, jitter=0)
+
+        def boom(*args, **kwargs):
+            raise exc
+        client.session.get = boom
+        return client
+
+    def test_no_connection(self):
+        import requests
+        with self.assertRaises(igweb.NetworkError) as ctx:
+            self._client(requests.ConnectionError("pool... getaddrinfo failed")).following("42")
+        self.assertIn("Could not reach Instagram", str(ctx.exception))
+        self.assertNotIn("getaddrinfo", str(ctx.exception))
+
+    def test_timeout(self):
+        import requests
+        with self.assertRaises(igweb.NetworkError) as ctx:
+            self._client(requests.ReadTimeout("Read timed out")).followers("42")
+        self.assertIn("30 seconds", str(ctx.exception))
+
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):
         client = igweb.IGWeb("42120983%3Ademosession%3A17")

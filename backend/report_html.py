@@ -285,6 +285,8 @@ tailwind.config = {
  .chip.add{background:var(--green-bg);} .chip.add::before{content:'+';@apply text-add;}
  .chip.rem{background:var(--red-bg);} .chip.rem::before{content:'-';@apply text-del;}
  .chip.gone::before{content:'~';@apply text-faint;} .chip.gone .usr{@apply text-muted;}
+ /* the return of an account an earlier scan reported as gone */
+ .chip.ret::before{content:'+';@apply text-faint;} .chip.ret .usr{@apply text-muted;}
  /* it was removed, but a later scan handed the account back */
  .chip.back::before{content:'-';@apply text-faint;} .chip.back .usr{@apply text-muted line-through decoration-1;}
  .chip:hover{background:var(--hover);}
@@ -431,7 +433,14 @@ function undone(d){const out=new Set(),h=d.history;
   for(let j=0;j<i;j++)h[j].added.forEach(u=>back.add(u));
   h[i].removed.forEach(u=>{if(back.has(u))out.add(h[i].at+'|'+u);});}
  return out;}
-function timeline(d,kind,gone){const undo=undone(d),items=d.history;
+// The other half of the same noise: when a dropped account is handed back, its
+// return shows up as an addition. An account already seen leaving is not new.
+function returned(d){const out=new Set(),h=d.history;
+ for(let i=0;i<h.length;i++){const left=new Set();
+  for(let j=i+1;j<h.length;j++)h[j].removed.forEach(u=>left.add(u));
+  h[i].added.forEach(u=>{if(left.has(u))out.add(h[i].at+'|'+u);});}
+ return out;}
+function timeline(d,kind,gone){const undo=undone(d),back=returned(d),items=d.history;
  if(!items.length)return '<div class="card"><span class="empty">'+tx('noChanges')+'</span></div>';
  const L=kind==='followers'?{a:tx('nNewFollower'),r:tx('nUnfollowed')}:{a:tx('nNowFollowing'),r:tx('nStopped')};
  const pane=h=>{
@@ -441,7 +450,7 @@ function timeline(d,kind,gone){const undo=undone(d),items=d.history;
    +'<span class="scan-t">'+tx('scan')+' &middot; '+(h.at||'').replace('T',' ')+'</span><span class="scan-n">'
    +(h.added.length?'<b class="up">+'+h.added.length+'</b>':'')
    +(h.removed.length?' <b class="down">-'+h.removed.length+'</b>':'')+'</span></div><div class="rows">';
-  h.added.forEach(u=>{s+=row(u,'add',L.a);});
+  h.added.forEach(u=>{s+=back.has(h.at+'|'+u)?row(u,'ret',tx('nReturned')):row(u,'add',L.a);});
   h.removed.forEach(u=>{const key=h.at+'|'+u;
    if(gone&&gone.has(key))s+=row(u,'gone',tx('nGone'));
    else if(undo.has(key))s+=row(u,'back',tx('nBack'));

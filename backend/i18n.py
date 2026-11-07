@@ -14,7 +14,7 @@ KEYS = [
     "noChanges", "noData", "none", "pickTwo", "noSharedF", "noSharedG",
     "sharedFollowers", "sharedFollowing", "followBoth", "bothFollow", "shared",
     "sort", "newest", "az", "show", "exported",
-    "recipSelfA", "recipSelfB", "recipOtherA", "recipOtherB", "footer", "noServer", "scanNothing", "older",
+    "recipSelfA", "recipSelfB", "recipOtherA", "recipOtherB", "footer", "noServer", "scanNothing", "older", "nReturned",
 ]
 
 T = {
@@ -35,6 +35,7 @@ T = {
         "Cannot reach the server — is run.py running?",
         "The scan finished without reading any account.",
         "Older scans ({n})",
+        "returned",
     ],
     "tr": [
         "Yenile", "Taranıyor...", "Güncellendi", "kullanıcı adı ara…",
@@ -59,6 +60,7 @@ T = {
         "Sunucuya ulaşılamıyor — run.py çalışıyor mu?",
         "Tarama hiçbir hesabı okuyamadan bitti.",
         "Eski taramalar ({n})",
+        "geri geldi",
     ],
     "zh": [
         "刷新", "扫描中...", "更新于", "搜索用户名…", "切换主题 (T)", "GitHub", "语言",
@@ -77,6 +79,7 @@ T = {
         "无法连接服务器 — run.py 是否在运行？",
         "扫描结束，但没有读取到任何账号。",
         "更早的扫描（{n}）",
+        "重新出现",
     ],
     "es": [
         "Actualizar", "Escaneando...", "Actualizado", "buscar usuario…", "Cambiar tema (T)", "GitHub", "Idioma",
@@ -96,6 +99,7 @@ T = {
         "No se puede conectar con el servidor: ¿se está ejecutando run.py?",
         "El escaneo terminó sin leer ninguna cuenta.",
         "Escaneos anteriores ({n})",
+        "regresó",
     ],
     "de": [
         "Aktualisieren", "Scannt...", "Aktualisiert", "Nutzername suchen…", "Theme wechseln (T)", "GitHub", "Sprache",
@@ -116,6 +120,7 @@ T = {
         "Server nicht erreichbar – läuft run.py?",
         "Der Scan endete, ohne ein Konto zu lesen.",
         "Ältere Scans ({n})",
+        "wieder aufgetaucht",
     ],
     "fr": [
         "Actualiser", "Analyse...", "Mis à jour", "chercher un compte…", "Changer de thème (T)", "GitHub", "Langue",
@@ -136,6 +141,7 @@ T = {
         "Serveur injoignable — run.py est-il lancé ?",
         "L’analyse s’est terminée sans lire aucun compte.",
         "Analyses plus anciennes ({n})",
+        "revenu",
     ],
     "ru": [
         "Обновить", "Сканирование...", "Обновлено", "поиск по имени…", "Сменить тему (T)", "GitHub", "Язык",
@@ -155,6 +161,7 @@ T = {
         "Сервер недоступен — запущен ли run.py?",
         "Скан завершился, не прочитав ни одного аккаунта.",
         "Более ранние сканы ({n})",
+        "снова появился",
     ],
     "ja": [
         "更新", "スキャン中...", "更新", "ユーザー名を検索…", "テーマ切替 (T)", "GitHub", "言語",
@@ -174,6 +181,7 @@ T = {
         "サーバーに接続できません — run.py は起動していますか？",
         "スキャンは終了しましたが、アカウントを 1 つも読み取れませんでした。",
         "以前のスキャン（{n}）",
+        "再出現",
     ],
 }
 

@@ -30,7 +30,7 @@ It runs entirely on your machine. Authentication uses a session cookie you copy 
 | | |
 | --- | --- |
 | **Scans read as diffs** | Each scan is a pane with a `+N -N` tally and one row per account, signed and labelled with what actually happened. |
-| **Separates noise from real losses** | A removal is only reported as an unfollow once it survives. Accounts that leave both lists at once, or that a later scan hands back, are marked as such instead. |
+| **Separates noise from real activity** | A removal only counts as an unfollow once it survives, and an addition only counts as new if the account was never seen leaving. Accounts that vanish from both lists, come back, or are handed back by a later scan are marked as such instead. |
 | **Counters navigate** | Following and followers jump to their lists; mutual and one-way jump to reciprocity. Collapsed lists open on the way. |
 | **Change history** | Every run is a timestamped snapshot, so any two runs remain comparable. |
 | **Reciprocity** | Accounts you follow that never followed back, and the reverse. |
@@ -126,17 +126,19 @@ All copy lives in [`backend/i18n.py`](backend/i18n.py): one table for the dashbo
 
 Instagram does not expose *when* a follow happened, so "recent" always means *since your last scan*. The first scan establishes a baseline; later scans show movement against it.
 
-### Reading a removal
+### Reading the feed
 
-Instagram's list endpoints are not stable. A single pass regularly ends while accounts are still missing, and the next pass hands them straight back, so a naive diff reports a wave of unfollows that never happened. FollowLens collects each list over several passes and then sorts what is left into three kinds of row:
+Instagram's list endpoints are not stable. A single pass regularly ends while accounts are still missing, and the next pass hands them straight back, so a naive diff reports a wave of unfollows that never happened, followed by a wave of "new" followers who were there all along. FollowLens collects each list over several passes and then sorts every row into one of five kinds:
 
 | Row | Meaning |
 | --- | --- |
-| `- name` &nbsp;&nbsp;*unfollowed* | Gone from one list and still gone. This is a real loss. |
-| `~ name` &nbsp;&nbsp;*account gone* | Left the followers and the following list in the same scan, which is a deactivated, renamed or newly private account rather than an unfollow. |
+| `+ name` &nbsp;&nbsp;*new follower* | Not in any earlier snapshot. Someone genuinely new. |
+| `+ name` muted &nbsp;&nbsp;*returned* | An earlier scan showed this account leaving; it is back. Not new. |
+| `- name` &nbsp;&nbsp;*unfollowed* | Gone from one list and still gone. A real loss. |
 | `- name` struck through &nbsp;&nbsp;*back since* | A later scan returned the account, so the removal did not hold. |
+| `~ name` &nbsp;&nbsp;*account gone* | Left the followers and the following list in the same scan: a deactivated, renamed or newly private account rather than an unfollow. |
 
-On a real history the last two together outnumber the first by a wide margin, which is the whole reason they are separated.
+Only the plain green and plain red rows are real activity. On a real history the muted kinds outnumber them on both sides, which is the whole reason they are drawn differently.
 
 ## Installation
 
@@ -220,7 +222,7 @@ Every failure is reported per account, in the toast after **Refresh** or in the 
 
 A failed run never starts the cooldown, so after fixing the cause you can scan again straight away.
 
-If the same accounts keep leaving and coming back between scans, that is the list endpoints being unstable rather than real activity; see [Reading a removal](#reading-a-removal). Raising `followers_max_passes` reduces it at the cost of a few more requests.
+If the same accounts keep leaving and coming back between scans, that is the list endpoints being unstable rather than real activity; see [Reading the feed](#reading-the-feed). Raising `followers_max_passes` reduces it at the cost of a few more requests.
 
 ## Privacy and safety
 

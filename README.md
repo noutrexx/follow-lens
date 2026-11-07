@@ -214,6 +214,7 @@ Every failure is reported per account, in the toast after **Refresh** or in the 
 | *Cooldown active: try again in …* | Less than `min_scan_interval_seconds` has passed since the last scan that read something. | Wait it out. `?force=1` skips it, but spends requests you may need later. |
 | *config.json not found* / *not valid JSON at line …* | The config is missing or has a syntax error. | Copy `config.example.json`, or fix the reported line and column. |
 | *No Instagram account is called @…* | A name in `targets` is misspelled or the account no longer exists. | Correct it in `config.json`. |
+| *Could not reach Instagram* / *did not answer within 30 seconds* | The computer running FollowLens has no connection to Instagram, or it timed out. | Check the internet connection, then scan again. Nothing was saved. |
 | *Cannot reach the server* | The page is open but `run.py` is not running. | Start it again. |
 | *Scans can only be started from this dashboard* | A request came from another site, or a tool sent a foreign `Origin`. | Use the Refresh button or plain `curl -X POST`. |
 

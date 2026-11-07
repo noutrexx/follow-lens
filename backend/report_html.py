@@ -515,8 +515,15 @@ function animDonut(panel){panel.querySelectorAll('.d-fg').forEach(c=>{requestAni
 function filt(btn,name,mode){btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
  document.querySelectorAll('#tl_'+name+' [data-has]').forEach(c=>{const h=c.dataset.has||'';c.classList.toggle('hidden',mode!=='all'&&!h.includes(mode));});}
 function gsearch(q){q=q.trim().toLowerCase();const p=document.querySelector('.panel.on');if(!p)return;
- if(q)p.querySelectorAll('details').forEach(d=>d.open=true);
- p.querySelectorAll('[data-u]').forEach(a=>{a.style.display=(!q||a.dataset.u.toLowerCase().includes(q))?'':'none';});}
+ // open every fold while searching, and put each back the way it was afterwards
+ if(q)p.querySelectorAll('details').forEach(d=>{if(!('was' in d.dataset))d.dataset.was=d.open?'1':'';d.open=true;});
+ else p.querySelectorAll('details').forEach(d=>{if('was' in d.dataset){d.open=d.dataset.was==='1';delete d.dataset.was;}});
+ const shown=a=>a.style.display!=='none';
+ p.querySelectorAll('[data-u]').forEach(a=>{a.style.display=(!q||a.dataset.u.toLowerCase().includes(q))?'':'none';});
+ // A pane whose every row was filtered out is only an empty header, and a fold
+ // whose panes are all gone is only a label; hide both so a search shows matches.
+ p.querySelectorAll('.scan').forEach(s=>{s.style.display=(!q||[...s.querySelectorAll('[data-u]')].some(shown))?'':'none';});
+ p.querySelectorAll('details.older').forEach(d=>{d.style.display=(!q||[...d.querySelectorAll('.scan')].some(shown))?'':'none';});}
 function expt(name){const t=DATA.targets[name],disp=t.display||name;
  const out={account:disp,exported_at:new Date().toISOString(),stats:t.stats,
   following:t.following?t.following.current.usernames:[],followers:t.followers?t.followers.current.usernames:[],

@@ -193,13 +193,19 @@ tailwind.config = {
  .wm-t{@apply text-[13.5px] font-bold tracking-tight;}
  .wm-t .path{@apply ml-2 font-normal text-faint;}
  .gsearch{@apply relative mx-auto max-w-[320px] flex-1;}
- .gsearch input{@apply w-full rounded-md border border-line bg-surface2 py-1.5 pl-9 pr-3 font-mono text-[13px] text-body outline-none transition;}
+ .gsearch input{@apply w-full rounded-md border border-line bg-surface2 py-1.5 pl-9 pr-9 font-mono text-[13px] text-body outline-none transition;}
  .gsearch input:focus{@apply border-accent;box-shadow:0 0 0 3px var(--ring);}
  .gsearch input::placeholder{@apply text-faint;}
  .gsearch .si{@apply absolute left-3 top-1/2 -translate-y-1/2 text-faint;} .gsearch .si svg{@apply h-[15px] w-[15px];}
+ .ghint{@apply absolute left-0 z-50 whitespace-nowrap rounded-md border border-line px-3 py-2 font-mono text-xs text-body shadow-lg;top:calc(100% + 6px);min-width:100%;max-width:min(92vw,420px);overflow:hidden;text-overflow:ellipsis;background:var(--bg);}
+ .ghint b{@apply text-add;}
  .gsearch kbd{@apply absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-line bg-surface px-1.5 font-mono text-[11px] font-semibold text-faint;}
  .right{@apply ml-auto flex items-center gap-2.5;}
- .live{@apply flex items-center gap-2 rounded-full border border-line bg-surface2 px-2.5 py-1.5 font-mono text-[11px] text-muted;}
+ .live{@apply flex flex-none items-center gap-2 whitespace-nowrap rounded-full border border-line bg-surface2 px-2.5 py-1.5 font-mono text-[11px] text-muted;}
+ #updl{@apply sr-only;}
+ .gsearch{min-width:200px;}
+ /* between phone and full width the header runs out of room first */
+ @media(max-width:1000px){.live,.ghub{display:none;}}
  .dot{@apply h-[7px] w-[7px] animate-pulseRing rounded-full;background:var(--green);}
  .ghub{@apply flex text-muted transition-colors hover:text-body;} .ghub svg{@apply h-[18px] w-[18px];}
  .btn{@apply inline-flex cursor-pointer items-center gap-2 rounded-md border-0 px-3.5 py-1.5 font-mono text-[12.5px] font-bold text-white transition;background:var(--grad);}
@@ -207,7 +213,7 @@ tailwind.config = {
  .btn svg{@apply h-[15px] w-[15px] fill-none stroke-white stroke-2;} .btn.spin svg{@apply animate-spin;}
  .ic{@apply inline-flex items-center justify-center;}
  .ic svg{@apply h-[15px] w-[15px] fill-none stroke-current stroke-[1.8] [stroke-linecap:round] [stroke-linejoin:round];}
- @media(max-width:760px){
+ @media(max-width:860px){ /* header wraps earlier than the rest: it is the widest row */
   .bar-in{@apply h-auto min-h-[76px] flex-wrap gap-x-2.5 gap-y-2 py-2.5;}
   .brand{@apply order-1 min-w-0 flex-auto;}
   .wm-t small,.live,.ghub{display:none;}
@@ -358,7 +364,7 @@ tailwind.config = {
 <div class="bar"><div class="wrap bar-in">
  <div class="lights"><i></i><i></i><i></i></div>
  <div class="brand"><div class="mark"><svg viewBox='0 0 32 32'><path fill-rule='evenodd' fill='#fff' d='M16 8.4c5.3 0 9.6 3.3 11.6 7.6-2 4.3-6.3 7.6-11.6 7.6S6.4 20.3 4.4 16C6.4 11.7 10.7 8.4 16 8.4Zm0 4.3a3.3 3.3 0 1 0 0 6.6 3.3 3.3 0 0 0 0-6.6Z'/></svg></div><div class="wm-t">followlens<span class="path">~/dashboard</span></div></div>
- <div class="gsearch"><span class="si ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></span><input id="gs" placeholder="grep username&hellip;" oninput="gsearch(this.value)"><kbd>/</kbd></div>
+ <div class="gsearch"><span class="si ic"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg></span><input id="gs" placeholder="grep username&hellip;" oninput="gsearch(this.value);hint(this.value)" autocomplete="off"><kbd>/</kbd><div class="ghint" id="gh" hidden></div></div>
  <div class="right">
   <div class="live"><span class="dot"></span><span id="updl">Updated</span> <b id="upd">__GEN__</b></div>
   <select class="lang" id="lg" onchange="setLang(this.value)" aria-label="Language"></select>
@@ -483,6 +489,7 @@ function listSection(name,kind,d,label,icn){const lid='l_'+name+'_'+kind;
   +'<div class="sortbar">'+tx('sort')+'<button class="on" onclick="sortList(this,\''+lid+'\',\'recent\')">'+tx('newest')+'</button><button onclick="sortList(this,\''+lid+'\',\'az\')">'+tx('az')+'</button></div>'
   +grid(d.current.usernames,lid)+'</details></div>';}
 function panel(name){const t=DATA.targets[name],s=t.stats||{},disp=t.display||name;
+ if(t.pending)return '<div class="card" style="margin-top:18px"><span class="empty">'+tx('pending',{n:disp})+'</span></div>';
  const fwBack=t.compare?t.compare.not_following_back.length:0;
  const pct=s.following?Math.round(s.mutual/s.following*100):0;
  const net=netChange(t.followers);
@@ -515,6 +522,35 @@ function panel(name){const t=DATA.targets[name],s=t.stats||{},disp=t.display||na
  if(t.followers)h+=listSection(name,'followers',t.followers,tx('followers'),'users');
  h+='</div>';
  return h;}
+// ---- tracking a new account from the search box ----
+// Typing a valid name that is not tracked yet offers it; Enter adds it and reads
+// just that account, so the rest are not scanned again.
+function trackable(q){q=(q||'').trim();if(!/^@?[A-Za-z0-9._]{1,30}$/.test(q))return null;
+ const n=q.replace(/^@/,'').toLowerCase();
+ const known=Object.keys(DATA.targets).concat(Object.values(DATA.targets).map(t=>(t.display||'').toLowerCase()));
+ return known.includes(n)?null:n;}
+function hint(q){const h=document.getElementById('gh'),n=trackable(q);
+ if(!n){h.hidden=true;return;}
+ const parts=tx('addHint',{n:'\u0000'}).replace('@\u0000','\u0000').split('\u0000');
+ h.textContent='';h.append(parts[0]);const b=document.createElement('b');b.textContent='@'+n;h.append(b,parts[1]||'');
+ h.hidden=false;}
+function addAccount(n){const g=document.getElementById('gs');g.disabled=true;
+ const done=()=>{g.disabled=false;};
+ fetch('/targets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:n})})
+ .then(r=>r.json()).then(j=>{
+  if(!j.ok){toast(j.error,7000);done();return;}
+  if(!j.added){toast(tx('alreadyTracked',{n:j.target}));done();return;}
+  toast(tx('adding',{n:j.target}),15000);
+  return fetch('/scan?target='+encodeURIComponent(j.target),{method:'POST'}).then(r=>r.json()).then(r=>{
+   const bad=(r.targets||[]).filter(x=>x.error);
+   if(r.ok&&(r.targets||[]).length&&!bad.length){location.reload();return;}
+   // added either way; explain why it was not read yet, then show its tab
+   toast(tx('addedLater',{n:j.target})+'\n'+(r.error||bad.map(x=>x.error).join('\n')),9000);
+   setTimeout(()=>location.reload(),9000);});})
+ .catch(()=>{toast(tx('noServer'));done();});}
+document.getElementById('gs').addEventListener('keydown',e=>{
+ if(e.key!=='Enter')return;const n=trackable(e.target.value);if(!n)return;
+ e.preventDefault();document.getElementById('gh').hidden=true;addAccount(n);});
 // ---- theme ----
 const STILL_Q=window.matchMedia('(prefers-reduced-motion: reduce)');
 function isLight(){return document.documentElement.getAttribute('data-theme')==='light';}
@@ -574,7 +610,7 @@ document.addEventListener('keydown',e=>{
  if(e.ctrlKey||e.metaKey||e.altKey)return;
  const el=document.activeElement,typing=!!el&&(/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)||el.isContentEditable);
  if(e.key==='/'&&el.id!=='gs'){e.preventDefault();document.getElementById('gs').focus();}
- else if(e.key==='Escape'){const g=document.getElementById('gs');g.value='';gsearch('');g.blur();}
+ else if(e.key==='Escape'){const g=document.getElementById('gs');g.value='';gsearch('');hint('');g.blur();}
  else if(typing)return;
  else if((e.key==='r'||e.key==='R')&&!e.repeat){scan();}
  else if(e.key==='t'||e.key==='T'){toggleTheme();}});
@@ -603,6 +639,7 @@ function runCompare(){const a=document.getElementById('cmpA').value,b=document.g
 function paintChrome(){document.documentElement.lang=LANG;
  document.getElementById('gs').placeholder=tx('search');
  document.getElementById('updl').textContent=tx('updated');
+ document.querySelector('.live').title=tx('updated')+' '+document.getElementById('upd').textContent;
  const rf=document.getElementById('rf');if(!rf.disabled)rf.querySelector('.t').textContent=tx('refresh');
  document.getElementById('tg').title=tx('theme');document.querySelector('.ghub').title=tx('github');
  const lg=document.getElementById('lg');lg.title=tx('language');lg.setAttribute('aria-label',tx('language'));

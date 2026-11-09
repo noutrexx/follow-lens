@@ -14,7 +14,7 @@ KEYS = [
     "noChanges", "noData", "none", "pickTwo", "noSharedF", "noSharedG",
     "sharedFollowers", "sharedFollowing", "followBoth", "bothFollow", "shared",
     "sort", "newest", "az", "show", "exported",
-    "recipSelfA", "recipSelfB", "recipOtherA", "recipOtherB", "footer", "noServer", "scanNothing", "older", "nReturned",
+    "recipSelfA", "recipSelfB", "recipOtherA", "recipOtherB", "footer", "noServer", "scanNothing", "older", "nReturned", "addHint", "adding", "addedLater", "alreadyTracked", "pending",
 ]
 
 T = {
@@ -36,6 +36,11 @@ T = {
         "The scan finished without reading any account.",
         "Older scans ({n})",
         "returned",
+        "Enter ↵ to track @{n}",
+        "Tracking @{n}. Reading it now…",
+        "@{n} is now tracked and will be read on the next scan.",
+        "@{n} is already tracked.",
+        "@{n} has not been scanned yet. Press Refresh to read it.",
     ],
     "tr": [
         "Yenile", "Taranıyor...", "Güncellendi", "kullanıcı adı ara…",
@@ -61,6 +66,11 @@ T = {
         "Tarama hiçbir hesabı okuyamadan bitti.",
         "Eski taramalar ({n})",
         "geri geldi",
+        "@{n} hesabını takibe almak için Enter ↵",
+        "@{n} takibe alındı. Şimdi okunuyor…",
+        "@{n} takibe alındı, bir sonraki taramada okunacak.",
+        "@{n} zaten takip ediliyor.",
+        "@{n} henüz taranmadı. Okumak için Yenile’ye bas.",
     ],
     "zh": [
         "刷新", "扫描中...", "更新于", "搜索用户名…", "切换主题 (T)", "GitHub", "语言",
@@ -80,6 +90,11 @@ T = {
         "扫描结束，但没有读取到任何账号。",
         "更早的扫描（{n}）",
         "重新出现",
+        "按 Enter ↵ 追踪 @{n}",
+        "已开始追踪 @{n}，正在读取…",
+        "已追踪 @{n}，将在下次扫描时读取。",
+        "@{n} 已在追踪中。",
+        "@{n} 还没有被扫描。点击刷新来读取。",
     ],
     "es": [
         "Actualizar", "Escaneando...", "Actualizado", "buscar usuario…", "Cambiar tema (T)", "GitHub", "Idioma",
@@ -100,6 +115,11 @@ T = {
         "El escaneo terminó sin leer ninguna cuenta.",
         "Escaneos anteriores ({n})",
         "regresó",
+        "Pulsa Enter ↵ para rastrear @{n}",
+        "Rastreando @{n}. Leyéndola ahora…",
+        "@{n} ya se rastrea y se leerá en el próximo escaneo.",
+        "@{n} ya se está rastreando.",
+        "@{n} aún no se ha escaneado. Pulsa Actualizar para leerla.",
     ],
     "de": [
         "Aktualisieren", "Scannt...", "Aktualisiert", "Nutzername suchen…", "Theme wechseln (T)", "GitHub", "Sprache",
@@ -121,6 +141,11 @@ T = {
         "Der Scan endete, ohne ein Konto zu lesen.",
         "Ältere Scans ({n})",
         "wieder aufgetaucht",
+        "Enter ↵, um @{n} zu beobachten",
+        "@{n} wird beobachtet. Wird jetzt gelesen…",
+        "@{n} wird jetzt beobachtet und beim nächsten Scan gelesen.",
+        "@{n} wird bereits beobachtet.",
+        "@{n} wurde noch nicht gescannt. Zum Lesen auf Aktualisieren klicken.",
     ],
     "fr": [
         "Actualiser", "Analyse...", "Mis à jour", "chercher un compte…", "Changer de thème (T)", "GitHub", "Langue",
@@ -142,6 +167,11 @@ T = {
         "L’analyse s’est terminée sans lire aucun compte.",
         "Analyses plus anciennes ({n})",
         "revenu",
+        "Entrée ↵ pour surveiller @{n}",
+        "Surveillance de @{n}. Lecture en cours…",
+        "@{n} est désormais surveillé et sera lu à la prochaine analyse.",
+        "@{n} est déjà surveillé.",
+        "@{n} n’a pas encore été analysé. Cliquez sur Actualiser pour le lire.",
     ],
     "ru": [
         "Обновить", "Сканирование...", "Обновлено", "поиск по имени…", "Сменить тему (T)", "GitHub", "Язык",
@@ -162,6 +192,11 @@ T = {
         "Скан завершился, не прочитав ни одного аккаунта.",
         "Более ранние сканы ({n})",
         "снова появился",
+        "Enter ↵ — отслеживать @{n}",
+        "@{n} добавлен. Читаем…",
+        "@{n} отслеживается и будет прочитан при следующем скане.",
+        "@{n} уже отслеживается.",
+        "@{n} ещё не сканировался. Нажмите «Обновить», чтобы прочитать.",
     ],
     "ja": [
         "更新", "スキャン中...", "更新", "ユーザー名を検索…", "テーマ切替 (T)", "GitHub", "言語",
@@ -182,6 +217,11 @@ T = {
         "スキャンは終了しましたが、アカウントを 1 つも読み取れませんでした。",
         "以前のスキャン（{n}）",
         "再出現",
+        "Enter ↵ で @{n} を追跡",
+        "@{n} の追跡を開始しました。読み取り中…",
+        "@{n} を追跡に追加しました。次回のスキャンで読み取ります。",
+        "@{n} はすでに追跡中です。",
+        "@{n} はまだスキャンされていません。更新を押して読み取ってください。",
     ],
 }
 

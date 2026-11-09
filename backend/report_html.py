@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import datetime
 from itertools import pairwise
 from pathlib import Path
@@ -53,9 +54,11 @@ def _latest_users(td: Path, kind: str) -> dict:
 def collect_data() -> dict:
     try:
         with open(ROOT / "config.json", encoding="utf-8") as f:
-            self_username = json.load(f).get("username", "self")
+            cfg = json.load(f)
+        self_username = cfg.get("username") or "self"
+        tracked = [str(t).lower() for t in cfg.get("targets", [])]
     except Exception:  # noqa: BLE001
-        self_username = "self"
+        self_username, tracked = "self", []
     targets = {}
     if DATA_DIR.exists():
         for td in sorted(p for p in DATA_DIR.iterdir() if p.is_dir()):
@@ -73,6 +76,11 @@ def collect_data() -> dict:
             if entry:
                 entry["display"] = self_username if td.name == "self" else td.name
                 targets[td.name] = entry
+    # Accounts that are tracked but have never been read still get a tab, so an
+    # account added from the dashboard shows up straight away.
+    for name in tracked:
+        if name not in targets:
+            targets[name] = {"display": self_username if name == "self" else name, "pending": True}
     return {"generated_at": datetime.now().strftime("%d.%m.%Y %H:%M"), "targets": targets}
 
 
@@ -628,7 +636,9 @@ def generate() -> Path:
             .replace("__I18N__", json.dumps(i18n.table(), ensure_ascii=False))
             .replace("__LANGS__", json.dumps(i18n.LANGS, ensure_ascii=False))
             .replace("__DATA__", json.dumps(data, ensure_ascii=False)))
-    OUT.write_text(html, encoding="utf-8")
+    tmp = OUT.with_name(OUT.name + ".tmp")
+    tmp.write_text(html, encoding="utf-8")
+    os.replace(tmp, OUT)
     return OUT
 
 

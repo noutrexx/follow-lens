@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import os
+import re
 import time
 from datetime import datetime
 from pathlib import Path
@@ -38,6 +40,45 @@ def _read_last() -> float:
         return 0.0
 
 
+# Instagram names: 1-30 letters, digits, dots and underscores, case-insensitive.
+USERNAME = re.compile(r"[a-z0-9._]{1,30}")
+
+
+def normalize_username(raw: str) -> str | None:
+    """Return the canonical form of a typed username, or None if it cannot be one."""
+    name = (raw or "").strip().lstrip("@").lower()
+    return name if USERNAME.fullmatch(name) else None
+
+
+def save_config(cfg: dict) -> None:
+    """Write config.json atomically. It holds the session cookie, so a half-written
+    file would cost the user their login on top of their target list."""
+    path = ROOT / "config.json"
+    tmp = path.with_name(path.name + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    os.replace(tmp, path)
+
+
+def add_target(raw: str) -> dict:
+    """Start tracking an account. Nothing is fetched here; the next scan reads it."""
+    name = normalize_username(raw)
+    if not name:
+        return {"ok": False, "error": "That is not a valid Instagram username."}
+    try:
+        cfg = load_config()
+    except ConfigError as e:
+        return {"ok": False, "error": str(e)}
+    targets = list(cfg.get("targets", ["self"]))
+    if name in (str(t).lower() for t in targets):
+        return {"ok": True, "target": name, "added": False}
+    cfg["targets"] = [*targets, name]
+    save_config(cfg)
+    report_html.generate()            # so the new tab is there on the next page load
+    return {"ok": True, "target": name, "added": True}
+
+
 def session_error(exc: Exception, scanned: list[str]) -> str:
     """Explain a 401 using what the rest of this run already managed to read."""
     if scanned:
@@ -46,7 +87,7 @@ def session_error(exc: Exception, scanned: list[str]) -> str:
     return f"{exc} No account could be read, so the sessionid has most likely expired. Refresh it."
 
 
-def run_scan(force: bool = False) -> dict:
+def run_scan(force: bool = False, only: str | None = None) -> dict:
     try:
         cfg = load_config()
     except ConfigError as e:
@@ -69,6 +110,13 @@ def run_scan(force: bool = False) -> dict:
     max_passes = int(cfg.get("followers_max_passes", 4))
     me_username = cfg.get("username") or "self"
     targets = cfg.get("targets", ["self"])
+    if only is not None:
+        # One account at a time, e.g. the one just added, so adding an account
+        # does not re-read every other list as well.
+        name = normalize_username(only)
+        if name not in (str(t).lower() for t in targets):
+            return {"ok": False, "error": f"@{only} is not one of the tracked accounts."}
+        targets = [name]
     known = dict(cfg.get("known_ids", {}))
 
     try:

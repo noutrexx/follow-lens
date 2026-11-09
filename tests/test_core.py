@@ -183,7 +183,7 @@ class ScanEndpointTests(unittest.TestCase):
         self.server = server
         self.calls = 0
 
-        def fake_scan(force=False):
+        def fake_scan(force=False, only=None):
             self.calls += 1
             return {"ok": True, "targets": []}
 
@@ -409,6 +409,94 @@ class NetworkErrorTests(unittest.TestCase):
         with self.assertRaises(igweb.NetworkError) as ctx:
             self._client(requests.ReadTimeout("Read timed out")).followers("42")
         self.assertIn("30 seconds", str(ctx.exception))
+
+
+class AddTargetTests(unittest.TestCase):
+    """Adding an account edits config.json safely and never touches the real one."""
+
+    def setUp(self):
+        import tempfile
+        self.tmp = Path(tempfile.mkdtemp())
+        self.real_root, self.real_gen = scanner.ROOT, scanner.report_html.generate
+        scanner.ROOT = self.tmp
+        scanner.report_html.generate = lambda: None
+        (self.tmp / "config.json").write_text(
+            '{"sessionid": "1%3Asecret", "targets": ["alex.rivers"], "port": 5005}', encoding="utf-8")
+
+    def tearDown(self):
+        scanner.ROOT, scanner.report_html.generate = self.real_root, self.real_gen
+
+    def _config(self):
+        import json
+        return json.loads((self.tmp / "config.json").read_text(encoding="utf-8"))
+
+    def test_adds_and_keeps_everything_else(self):
+        result = scanner.add_target("  @Vela.Studio ")
+        self.assertEqual(result, {"ok": True, "target": "vela.studio", "added": True})
+        cfg = self._config()
+        self.assertEqual(cfg["targets"], ["alex.rivers", "vela.studio"])
+        self.assertEqual(cfg["sessionid"], "1%3Asecret")
+        self.assertEqual(cfg["port"], 5005)
+        self.assertEqual(list(self.tmp.glob("*.tmp")), [])
+
+    def test_existing_account_is_not_duplicated(self):
+        result = scanner.add_target("ALEX.RIVERS")
+        self.assertFalse(result["added"])
+        self.assertEqual(self._config()["targets"], ["alex.rivers"])
+
+    def test_rejects_names_instagram_cannot_have(self):
+        for bad in ("", "@", "has space", "semi;colon", "x" * 31, "../config"):
+            self.assertFalse(scanner.add_target(bad)["ok"], bad)
+        self.assertEqual(self._config()["targets"], ["alex.rivers"])
+
+    def test_single_target_scan_refuses_untracked_accounts(self):
+        result = scanner.run_scan(force=True, only="someone.else")
+        self.assertFalse(result["ok"])
+        self.assertIn("not one of the tracked accounts", result["error"])
+
+
+class AddEndpointTests(unittest.TestCase):
+    """POST /targets follows the same origin rules as /scan."""
+
+    def setUp(self):
+        import server
+        self.server, self.calls = server, []
+        self.real = server.scanner.add_target
+        server.scanner.add_target = lambda name: (self.calls.append(name),
+                                                  {"ok": True, "target": name, "added": True})[1]
+        self.client = server.app.test_client()
+
+    def tearDown(self):
+        self.server.scanner.add_target = self.real
+
+    def test_dashboard_can_add(self):
+        r = self.client.post("/targets", json={"username": "vela.studio"}, headers={"Origin": "http://localhost"})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self.calls, ["vela.studio"])
+
+    def test_other_sites_cannot_add(self):
+        r = self.client.post("/targets", json={"username": "x"}, headers={"Origin": "https://evil.example"})
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(self.calls, [])
+
+
+class PendingTargetTests(unittest.TestCase):
+    """A tracked account with no snapshots yet still gets a tab."""
+
+    def test_tracked_but_unscanned_account_is_listed(self):
+        import tempfile
+
+        import report_html
+        tmp = Path(tempfile.mkdtemp())
+        (tmp / "data").mkdir()
+        (tmp / "config.json").write_text('{"targets": ["new.one"]}', encoding="utf-8")
+        real = (report_html.ROOT, report_html.DATA_DIR)
+        report_html.ROOT, report_html.DATA_DIR = tmp, tmp / "data"
+        try:
+            targets = report_html.collect_data()["targets"]
+        finally:
+            report_html.ROOT, report_html.DATA_DIR = real
+        self.assertEqual(targets["new.one"], {"display": "new.one", "pending": True})
 
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):

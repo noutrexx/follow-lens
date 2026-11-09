@@ -78,9 +78,18 @@ def scan():
         return jsonify({"ok": False, "error": "A scan is already running."}), 409
     force = request.args.get("force") in ("1", "true", "yes")
     try:
-        return jsonify(scanner.run_scan(force=force))
+        return jsonify(scanner.run_scan(force=force, only=request.args.get("target")))
     finally:
         _lock.release()
+
+
+@app.route("/targets", methods=["POST"])
+def add_target():
+    """Track one more account: {"username": "..."}. Same origin rules as /scan."""
+    if not _same_origin():
+        return jsonify({"ok": False, "error": "Accounts can only be added from this dashboard."}), 403
+    body = request.get_json(silent=True) or {}
+    return jsonify(scanner.add_target(str(body.get("username", ""))))
 
 
 @app.route("/health")

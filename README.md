@@ -36,7 +36,7 @@ It runs entirely on your machine. Authentication uses a session cookie you copy 
 | **Reciprocity** | Accounts you follow that never followed back, and the reverse. |
 | **Account comparison** | Shared followers and shared following between any two tracked accounts. |
 | **Search and filters** | Match any username in the active account; filter the feed to new or removed. |
-| **Add accounts from the dashboard** | Type a username that is not tracked yet into the search box and press Enter. It is added to `config.json` and read straight away, on its own. |
+| **Manage accounts from the dashboard** | Type a username that is not tracked yet into the search box and press Enter: it is added to `config.json` and read straight away, on its own. Stop tracking it from its profile tile; its history is kept. |
 | **Eight languages** | English, Türkçe, 中文, Español, Deutsch, Français, Русский and 日本語 across the dashboard and the landing page. Switches without a reload and remembers the choice. |
 | **Themes** | Dark by default. The header toggle switches to light and remembers the choice. |
 | **Keyboard** | `/` search · `R` rescan · `T` theme · `Esc` clear. |
@@ -193,9 +193,11 @@ curl -X POST "http://localhost:5005/scan?force=1"
 
 Type the username into the search box. When it is a valid name that is not tracked yet, a line under the box offers it: press **Enter**. FollowLens adds it to `targets` in `config.json` and reads only that account, so the others are not scanned again.
 
-If a scan ran in the last few minutes, the cooldown still applies: the account is added and gets its own tab straight away, marked as not scanned yet, and is read on the next scan.
+The first read of a newly added account goes through even if a scan ran minutes ago; after that it follows the cooldown like every other account.
 
-To stop tracking an account, remove it from `targets` in `config.json`. Its snapshots stay in `data/`.
+If the account is private and the session does not follow it, FollowLens says so instead of saving an empty list. More generally, a list that comes back empty while the profile, or the previous scan, says it has people in it is never saved, because Instagram returns an empty list rather than an error for accounts it will not show.
+
+**Stop tracking** sits in each account's profile tile. It asks first, then takes the account out of future scans. Its tab stays, muted, because its history is kept in `data/`; the tab offers **Track again**.
 
 ## Configuration
 
@@ -224,7 +226,9 @@ Every failure is reported per account, in the toast after **Refresh** or in the 
 | *… page … was not JSON* | Instagram served a login page instead of data, which means it no longer accepts the session. | Copy a fresh `sessionid` into `config.json`. |
 | *Cooldown active: try again in …* | Less than `min_scan_interval_seconds` has passed since the last scan that read something. | Wait it out. `?force=1` skips it, but spends requests you may need later. |
 | *config.json not found* / *not valid JSON at line …* | The config is missing or has a syntax error. | Copy `config.example.json`, or fix the reported line and column. |
-| *No Instagram account is called @…* | A name in `targets` is misspelled or the account no longer exists. | Correct or remove it in `config.json`. |
+| *No Instagram account is called @…* | A name in `targets` is misspelled or the account no longer exists. | Stop tracking it from its tab, or correct it in `config.json`. |
+| *… is private and this session does not follow it* | Instagram does not show this account's lists to you. | Follow it from the account the session belongs to, or stop tracking it. |
+| *… came back empty although the profile shows …* | Instagram hid the list for this read. Nothing was saved. | Try again later; if it persists the account has likely gone private. |
 | *Could not reach Instagram* / *did not answer within 30 seconds* | The computer running FollowLens has no connection to Instagram, or it timed out. | Check the internet connection, then scan again. Nothing was saved. |
 | *Cannot reach the server* | The page is open but `run.py` is not running. | Start it again. |
 | *Scans can only be started from this dashboard* | A request came from another site, or a tool sent a foreign `Origin`. | Use the Refresh button or plain `curl -X POST`. |

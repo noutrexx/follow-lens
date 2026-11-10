@@ -92,6 +92,15 @@ def add_target():
     return jsonify(scanner.add_target(str(body.get("username", ""))))
 
 
+@app.route("/targets/remove", methods=["POST"])
+def remove_target():
+    """Stop tracking one account: {"username": "..."}. History is kept."""
+    if not _same_origin():
+        return jsonify({"ok": False, "error": "Accounts can only be changed from this dashboard."}), 403
+    body = request.get_json(silent=True) or {}
+    return jsonify(scanner.remove_target(str(body.get("username", ""))))
+
+
 @app.route("/health")
 def health():
     return jsonify({"ok": True})

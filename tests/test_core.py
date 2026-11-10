@@ -499,7 +499,7 @@ class PendingTargetTests(unittest.TestCase):
             targets = report_html.collect_data()["targets"]
         finally:
             report_html.ROOT, report_html.DATA_DIR = real
-        self.assertEqual(targets["new.one"], {"display": "new.one", "pending": True})
+        self.assertEqual(targets["new.one"], {"display": "new.one", "pending": True, "tracked": True})
 
 
 class NewAccountScanTests(unittest.TestCase):
@@ -594,6 +594,77 @@ class NewAccountScanTests(unittest.TestCase):
         scanner.run_scan(only="new.one")
         cfg = json.loads((self.tmp / "config.json").read_text(encoding="utf-8"))
         self.assertEqual(cfg["known_ids"], {"new.one": "99"})
+
+
+class RemoveTargetTests(unittest.TestCase):
+    """Removing stops scans but never deletes history or the rest of the config."""
+
+    def setUp(self):
+        import tempfile
+        self.tmp = Path(tempfile.mkdtemp())
+        self.saved = (scanner.ROOT, scanner.report_html.generate, storage.DATA_DIR)
+        scanner.ROOT = self.tmp
+        scanner.report_html.generate = lambda: None
+        storage.DATA_DIR = self.tmp / "data"
+        (self.tmp / "config.json").write_text(
+            '{"sessionid": "1%3Asecret", "targets": ["alex.rivers", "vela.studio"]}', encoding="utf-8")
+
+    def tearDown(self):
+        scanner.ROOT, scanner.report_html.generate, storage.DATA_DIR = self.saved
+
+    def _targets(self):
+        import json
+        return json.loads((self.tmp / "config.json").read_text(encoding="utf-8"))["targets"]
+
+    def test_removes_only_that_account(self):
+        result = scanner.remove_target("@Vela.Studio")
+        self.assertEqual(result, {"ok": True, "target": "vela.studio", "removed": True})
+        self.assertEqual(self._targets(), ["alex.rivers"])
+
+    def test_history_is_kept(self):
+        storage.save_snapshot("vela.studio", "followers", {"1": "a"})
+        scanner.remove_target("vela.studio")
+        self.assertIsNotNone(storage.latest_snapshot("vela.studio", "followers"))
+
+    def test_untracked_name_is_a_no_op(self):
+        self.assertFalse(scanner.remove_target("nobody.here")["removed"])
+        self.assertEqual(self._targets(), ["alex.rivers", "vela.studio"])
+
+    def test_bad_name_is_rejected(self):
+        self.assertFalse(scanner.remove_target("../config")["ok"])
+
+    def test_endpoint_refuses_other_sites(self):
+        import server
+        r = server.app.test_client().post("/targets/remove", json={"username": "vela.studio"},
+                                          headers={"Origin": "https://evil.example"})
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(self._targets(), ["alex.rivers", "vela.studio"])
+
+
+class TrackedFlagTests(unittest.TestCase):
+    """History of an account no longer tracked is still shown, marked and last."""
+
+    def test_untracked_history_is_marked_and_sorted_last(self):
+        import tempfile
+
+        import report_html
+        tmp = Path(tempfile.mkdtemp())
+        data = tmp / "data"
+        for name in ("aaa.old", "zzz.live"):
+            (data / name).mkdir(parents=True)
+            for kind in ("following", "followers"):
+                (data / name / f"{kind}_20260101_000000.json").write_text(
+                    '{"count": 1, "users": {"1": "x"}, "captured_at": "2026-01-01T00:00:00"}', encoding="utf-8")
+        (tmp / "config.json").write_text('{"targets": ["zzz.live"]}', encoding="utf-8")
+        real = (report_html.ROOT, report_html.DATA_DIR)
+        report_html.ROOT, report_html.DATA_DIR = tmp, data
+        try:
+            targets = report_html.collect_data()["targets"]
+        finally:
+            report_html.ROOT, report_html.DATA_DIR = real
+        self.assertEqual(list(targets), ["zzz.live", "aaa.old"])
+        self.assertTrue(targets["zzz.live"]["tracked"])
+        self.assertFalse(targets["aaa.old"]["tracked"])
 
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):

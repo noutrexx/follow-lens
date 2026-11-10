@@ -87,6 +87,25 @@ def session_error(exc: Exception, scanned: list[str]) -> str:
     return f"{exc} No account could be read, so the sessionid has most likely expired. Refresh it."
 
 
+def remove_target(raw: str) -> dict:
+    """Stop tracking an account. Its snapshots stay on disk; scans just skip it."""
+    name = (raw or "").strip().lstrip("@").lower()
+    if name != "self" and not normalize_username(name):
+        return {"ok": False, "error": "That is not a valid Instagram username."}
+    try:
+        cfg = load_config()
+    except ConfigError as e:
+        return {"ok": False, "error": str(e)}
+    targets = list(cfg.get("targets", ["self"]))
+    kept = [t for t in targets if str(t).lower() != name]
+    if len(kept) == len(targets):
+        return {"ok": True, "target": name, "removed": False}
+    cfg["targets"] = kept
+    save_config(cfg)
+    report_html.generate()
+    return {"ok": True, "target": name, "removed": True}
+
+
 def never_scanned(target: str) -> bool:
     return (storage.latest_snapshot(target, "following") is None
             and storage.latest_snapshot(target, "followers") is None)

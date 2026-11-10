@@ -75,12 +75,16 @@ def collect_data() -> dict:
                 entry["stats"] = {"following": len(fs), "followers": len(ls), "mutual": len(fs & ls)}
             if entry:
                 entry["display"] = self_username if td.name == "self" else td.name
+                entry["tracked"] = td.name.lower() in tracked
                 targets[td.name] = entry
     # Accounts that are tracked but have never been read still get a tab, so an
     # account added from the dashboard shows up straight away.
     for name in tracked:
         if name not in targets:
-            targets[name] = {"display": self_username if name == "self" else name, "pending": True}
+            targets[name] = {"display": self_username if name == "self" else name,
+                             "pending": True, "tracked": True}
+    # tracked accounts first; ones that are only history go to the end
+    targets = dict(sorted(targets.items(), key=lambda kv: not kv[1].get("tracked")))
     return {"generated_at": datetime.now().strftime("%d.%m.%Y %H:%M"), "targets": targets}
 
 

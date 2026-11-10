@@ -231,6 +231,10 @@ tailwind.config = {
  .acct{@apply flex cursor-pointer items-center gap-2.5 rounded-lg py-1.5 pl-2 pr-3.5 text-muted transition;}
  .acct:hover{@apply text-body;background:var(--hover);}
  .acct.on{@apply text-white;background:var(--grad);}
+ .acct.off:not(.on){@apply opacity-60;} .acct.off .nm{@apply line-through decoration-1;}
+ .tact{@apply ml-auto flex-none cursor-pointer self-start whitespace-nowrap rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-[11px] text-muted transition;}
+ .tact:hover{@apply border-line2 text-body;} .tact[data-act=untrack]:hover{@apply text-del;}
+ .trk{@apply flex flex-wrap items-center gap-3;} .trk.off{@apply mb-3 mt-4;}
  .am{@apply flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold uppercase;background:var(--av-chip);}
  .acct.on .am{@apply bg-white/25;} .acct .nm{@apply text-[13px] font-semibold;}
  /* panel */
@@ -493,15 +497,21 @@ function listSection(name,kind,d,label,icn){const lid='l_'+name+'_'+kind;
   +'<div class="sortbar">'+tx('sort')+'<button class="on" onclick="sortList(this,\''+lid+'\',\'recent\')">'+tx('newest')+'</button><button onclick="sortList(this,\''+lid+'\',\'az\')">'+tx('az')+'</button></div>'
   +grid(d.current.usernames,lid)+'</details></div>';}
 function panel(name){const t=DATA.targets[name],s=t.stats||{},disp=t.display||name;
- if(t.pending)return '<div class="card" style="margin-top:18px"><span class="empty">'+tx('pending',{n:disp})+'</span></div>';
+ if(t.pending)return '<div class="card trk" style="margin-top:18px"><span class="empty">'+tx('pending',{n:disp})+'</span>'
+  +'<button class="tact" data-act="untrack" data-n="'+name+'">&times; '+tx('stopTracking')+'</button></div>';
+ const head=t.tracked===false
+  ?'<div class="card trk off"><span class="empty">'+tx('notTracked',{n:disp})+'</span>'
+   +(name==='self'?'':'<button class="tact" data-act="track" data-n="'+name+'">+ '+tx('trackAgain')+'</button>')+'</div>'
+  :'';
  const fwBack=t.compare?t.compare.not_following_back.length:0;
  const pct=s.following?Math.round(s.mutual/s.following*100):0;
  const net=netChange(t.followers);
  let netH='<div class="net"><div class="nl">'+tx('net')+'</div><div class="nv '+(net>0?'up':net<0?'down':'')+'">'+(net==null?'&ndash;':(net>0?'+':'')+net)+'</div></div>';
  // bento
- let h='<div class="tile b-prof"><div class="pf-top"><div class="pav"><span>'+ini(disp)+'</span></div>'
+ let h=head+'<div class="tile b-prof"><div class="pf-top"><div class="pav"><span>'+ini(disp)+'</span></div>'
    +'<div><div class="pname"><a href="'+igl(disp)+'" target="_blank">@'+disp+'</a></div>'
-   +'<div class="psub">'+nf(s.following)+' '+tx('following').toLocaleLowerCase(LANG)+' &middot; '+nf(s.followers)+' '+tx('followers').toLocaleLowerCase(LANG)+'</div></div></div>'
+   +'<div class="psub">'+nf(s.following)+' '+tx('following').toLocaleLowerCase(LANG)+' &middot; '+nf(s.followers)+' '+tx('followers').toLocaleLowerCase(LANG)+'</div></div>'
+   +(t.tracked===false?'':'<button class="tact" data-act="untrack" data-n="'+name+'">&times; '+tx('stopTracking')+'</button>')+'</div>'
    +'<div class="pf-mid"><div class="donut-wrap">'+donut(pct)+'<div class="donut-lbl"><b>'+nf(s.mutual)+'</b>'+tx('mutualWord')+'<br>'+tx('followBack')+'</div></div>'+netH+'</div></div>';
  h+='<div class="strip">'
   +statTile(tx('following'),s.following,'userplus',t.following,t.following?'sec_'+name+'_following':null)
@@ -552,6 +562,14 @@ function addAccount(n){const g=document.getElementById('gs');g.disabled=true;
    toast(tx('addedLater',{n:j.target})+'\n'+(r.error||bad.map(x=>x.error).join('\n')),9000);
    setTimeout(()=>location.reload(),9000);});})
  .catch(()=>{toast(tx('noServer'));done();});}
+// Stop tracking asks first; it only takes the account out of future scans.
+function untrack(n){if(!confirm(tx('confirmRemove',{n})))return;
+ fetch('/targets/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:n})})
+ .then(r=>r.json()).then(j=>{if(!j.ok){toast(j.error,7000);return;}
+  toast(tx('removed',{n:j.target}));setTimeout(()=>location.reload(),700);})
+ .catch(()=>toast(tx('noServer')));}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;
+ if(b.dataset.act==='untrack')untrack(b.dataset.n);else if(b.dataset.act==='track')addAccount(b.dataset.n);});
 document.getElementById('gs').addEventListener('keydown',e=>{
  if(e.key!=='Enter')return;const n=trackable(e.target.value);if(!n)return;
  e.preventDefault();document.getElementById('gh').hidden=true;addAccount(n);});
@@ -654,7 +672,7 @@ function build(){
  document.getElementById('accts').innerHTML='';document.getElementById('main').innerHTML='';
  const names=Object.keys(DATA.targets),accts=document.getElementById('accts'),main=document.getElementById('main');
  if(!names.length)main.innerHTML='<div class="card" style="margin-top:24px"><span class="empty">'+tx('noData')+'</span></div>';
- else{names.forEach((n,i)=>{const disp=DATA.targets[n].display||n;const a=document.createElement('div');a.className='acct'+(i?'':' on');a.dataset.n=n;
+ else{names.forEach((n,i)=>{const disp=DATA.targets[n].display||n;const a=document.createElement('div');a.className='acct'+(i?'':' on')+(DATA.targets[n].tracked===false?' off':'');a.dataset.n=n;if(DATA.targets[n].tracked===false)a.title=tx('notTracked',{n:disp});
   a.innerHTML='<span class="am">'+ini(disp)+'</span><span class="nm">@'+disp+'</span>';a.onclick=()=>show(n);accts.appendChild(a);
   const p=document.createElement('div');p.className='panel'+(i?'':' on');p.id='pn_'+n;p.innerHTML=panel(n);main.appendChild(p);});
   if(names.length>=2){const ca=document.createElement('div');ca.className='acct';ca.dataset.n='__cmp__';

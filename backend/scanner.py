@@ -87,6 +87,31 @@ def session_error(exc: Exception, scanned: list[str]) -> str:
     return f"{exc} No account could be read, so the sessionid has most likely expired. Refresh it."
 
 
+def never_scanned(target: str) -> bool:
+    return (storage.latest_snapshot(target, "following") is None
+            and storage.latest_snapshot(target, "followers") is None)
+
+
+def empty_problem(target: str, uname: str, profile: dict, lists) -> str | None:
+    """Explain a list that came back empty when it clearly should not have.
+
+    Instagram serves an empty list, not an error, for an account it will not show
+    this session. Stored, that reads as everyone leaving, and when the account
+    becomes visible again everyone reads as new.
+    """
+    for kind, users in lists:
+        if users:
+            continue
+        expected = profile.get(kind)
+        old = storage.latest_snapshot(target, kind)
+        before = old.get("count", len(old.get("users", {}))) if old else 0
+        if expected or before:
+            seen = f"the profile shows {expected}" if expected else f"the last scan had {before}"
+            return (f"@{uname}'s {kind} came back empty although {seen}. The account is "
+                    "private or hidden from this session; nothing was saved.")
+    return None
+
+
 def run_scan(force: bool = False, only: str | None = None) -> dict:
     try:
         cfg = load_config()
@@ -96,10 +121,23 @@ def run_scan(force: bool = False, only: str | None = None) -> dict:
     if not sessionid:
         return {"ok": False, "error": "No sessionid. Add your session key to config.json (see README)."}
 
+    targets = cfg.get("targets", ["self"])
+    if only is not None:
+        # One account at a time, e.g. the one just added, so adding an account
+        # does not re-read every other list as well.
+        name = normalize_username(only)
+        if name not in (str(t).lower() for t in targets):
+            return {"ok": False, "error": f"@{only} is not one of the tracked accounts."}
+        targets = [name]
+    # The first read of a single account nobody has scanned yet is allowed through
+    # the cooldown: without it, an account added minutes after a scan just sits
+    # there empty. Every later scan, of it or of anything else, still waits.
+    first_read = only is not None and never_scanned(targets[0])
+
     # --- Cooldown: minimum time between scans to lower ban risk ---
     cooldown = float(cfg.get("min_scan_interval_seconds", 600))
     elapsed = time.time() - _read_last()
-    if not force and elapsed < cooldown:
+    if not force and not first_read and elapsed < cooldown:
         remain = int(cooldown - elapsed)
         return {"ok": False, "cooldown": remain,
                 "error": f"Cooldown active: try again in {remain}s "
@@ -109,15 +147,8 @@ def run_scan(force: bool = False, only: str | None = None) -> dict:
     jitter = float(cfg.get("delay_jitter_seconds", 2.5))
     max_passes = int(cfg.get("followers_max_passes", 4))
     me_username = cfg.get("username") or "self"
-    targets = cfg.get("targets", ["self"])
-    if only is not None:
-        # One account at a time, e.g. the one just added, so adding an account
-        # does not re-read every other list as well.
-        name = normalize_username(only)
-        if name not in (str(t).lower() for t in targets):
-            return {"ok": False, "error": f"@{only} is not one of the tracked accounts."}
-        targets = [name]
     known = dict(cfg.get("known_ids", {}))
+    new_ids: dict[str, str] = {}
 
     try:
         ig = igweb.IGWeb(sessionid, known_ids=known, delay=delay, jitter=jitter)
@@ -131,9 +162,16 @@ def run_scan(force: bool = False, only: str | None = None) -> dict:
     for t in targets:
         uname = me_username if t == "self" else t
         try:
-            uid = ig.self_id if t == "self" else ig.resolve_uid(uname)["id"]
-            fwg = ig.following(uid, max_passes=max_passes)
-            flw = ig.followers(uid, max_passes=max_passes)
+            profile = {"id": ig.self_id} if t == "self" else ig.resolve_uid(uname)
+            if uname.lower() not in known:
+                new_ids[uname.lower()] = profile["id"]
+            if profile.get("private") and not profile.get("followed") and profile["id"] != ig.self_id:
+                summary["targets"].append({"target": t, "error": (
+                    f"@{uname} is private and this session does not follow it, so its lists "
+                    "cannot be read. Nothing was saved.")})
+                continue
+            fwg = ig.following(profile["id"], max_passes=max_passes)
+            flw = ig.followers(profile["id"], max_passes=max_passes)
         except igweb.RateLimited as e:
             return {"ok": False, "error": f"429: {e} (too many scans today, try again in ~30 min)"}
         except igweb.SessionRejected as e:
@@ -141,6 +179,11 @@ def run_scan(force: bool = False, only: str | None = None) -> dict:
             continue
         except Exception as e:  # noqa: BLE001
             summary["targets"].append({"target": t, "error": f"{type(e).__name__}: {e}"})
+            continue
+
+        problem = empty_problem(t, uname, profile, (("following", fwg), ("followers", flw)))
+        if problem:
+            summary["targets"].append({"target": t, "error": problem})
             continue
 
         changes = {}
@@ -158,6 +201,15 @@ def run_scan(force: bool = False, only: str | None = None) -> dict:
     # A run that read nothing spent no real budget and changed no data, so it
     # must not start the cooldown: the usual cause is an expired session, and
     # the user should be able to retry the moment they paste a new one.
+    # Remember ids looked up this run, so the rate-limited profile endpoint is
+    # hit once per account rather than on every scan.
+    if new_ids:
+        try:
+            fresh = load_config()
+            fresh.setdefault("known_ids", {}).update(new_ids)
+            save_config(fresh)
+        except ConfigError:
+            pass
     if scanned:
         LAST_SCAN.parent.mkdir(parents=True, exist_ok=True)
         LAST_SCAN.write_text(str(time.time()))

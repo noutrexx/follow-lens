@@ -108,7 +108,11 @@ class IGWeb:
         return last  # type: ignore[return-value]
 
     def resolve_uid(self, username: str) -> dict:
-        """Return ``{"id": ...}`` for a username, using the cache when possible."""
+        """Return ``{"id": ...}`` for a username, using the cache when possible.
+
+        A fresh lookup also returns ``private``, ``followed`` and the profile's
+        ``followers``/``following`` counts.
+        """
         key = username.lower()
         if key in self.known_ids:
             return {"id": self.known_ids[key]}
@@ -125,7 +129,14 @@ class IGWeb:
         user = (resp.json().get("data") or {}).get("user")
         if not user:
             raise missing
-        return {"id": str(user["id"])}
+        # The profile also says whether the lists are visible to this session and
+        # how long they should be, which lets the scanner tell a hidden list from
+        # a genuinely empty one.
+        def count(key):
+            return (user.get(key) or {}).get("count")
+        return {"id": str(user["id"]), "private": bool(user.get("is_private")),
+                "followed": bool(user.get("followed_by_viewer")),
+                "followers": count("edge_followed_by"), "following": count("edge_follow")}
 
     def _page(self, uid: str, kind: str, max_id, count: int):
         """Fetch one page of a friendship list. Returns ``(items, next_max_id)``."""

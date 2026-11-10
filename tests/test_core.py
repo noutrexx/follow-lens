@@ -322,8 +322,11 @@ class LookupTests(unittest.TestCase):
             self._client(_StubResponse(200, {"data": {"user": None}})).resolve_uid("no.such.user")
 
     def test_known_account_resolves(self):
-        found = self._client(_StubResponse(200, {"data": {"user": {"id": 42}}})).resolve_uid("real")
-        self.assertEqual(found, {"id": "42"})
+        user = {"id": 42, "is_private": True, "followed_by_viewer": False,
+                "edge_followed_by": {"count": 180}, "edge_follow": {"count": 90}}
+        found = self._client(_StubResponse(200, {"data": {"user": user}})).resolve_uid("real")
+        self.assertEqual(found, {"id": "42", "private": True, "followed": False,
+                                 "followers": 180, "following": 90})
 
 
 class SnapshotDurabilityTests(unittest.TestCase):
@@ -497,6 +500,100 @@ class PendingTargetTests(unittest.TestCase):
         finally:
             report_html.ROOT, report_html.DATA_DIR = real
         self.assertEqual(targets["new.one"], {"display": "new.one", "pending": True})
+
+
+class NewAccountScanTests(unittest.TestCase):
+    """A newly added account must end up read, or explained, never silently empty."""
+
+    def setUp(self):
+        import json
+        import tempfile
+        self.tmp = Path(tempfile.mkdtemp())
+        self.saved = (scanner.ROOT, scanner.LAST_SCAN, storage.DATA_DIR, scanner.igweb.IGWeb,
+                      scanner.report_html.generate)
+        scanner.ROOT = self.tmp
+        scanner.LAST_SCAN = self.tmp / "data" / ".last_scan"
+        storage.DATA_DIR = self.tmp / "data"
+        scanner.report_html.generate = lambda: None
+        (self.tmp / "config.json").write_text(json.dumps(
+            {"sessionid": "1%3Ax", "targets": ["new.one"], "min_scan_interval_seconds": 600}), encoding="utf-8")
+        self.fetched = []
+
+    def tearDown(self):
+        (scanner.ROOT, scanner.LAST_SCAN, storage.DATA_DIR, scanner.igweb.IGWeb,
+         scanner.report_html.generate) = self.saved
+
+    def _ig(self, lists, **profile):
+        test = self
+
+        class Fake:
+            self_id = "1"
+
+            def __init__(self, *a, **k):
+                pass
+
+            def resolve_uid(self, name):
+                return {"id": "99", **profile}
+
+            def following(self, uid, max_passes=4):
+                test.fetched.append(uid)
+                return dict(lists)
+
+            followers = following
+        scanner.igweb.IGWeb = Fake
+
+    def _recent_scan(self):
+        import time
+        scanner.LAST_SCAN.parent.mkdir(parents=True, exist_ok=True)
+        scanner.LAST_SCAN.write_text(str(time.time() - 60))
+
+    def test_first_read_of_a_new_account_skips_the_cooldown(self):
+        self._recent_scan()
+        self._ig({"10": "a"}, followers=1, following=1)
+        result = scanner.run_scan(only="new.one")
+        self.assertTrue(result["ok"], result)
+        self.assertEqual(storage.latest_snapshot("new.one", "followers")["count"], 1)
+
+    def test_second_read_still_waits_for_the_cooldown(self):
+        self._ig({"10": "a"}, followers=1, following=1)
+        scanner.run_scan(only="new.one", force=True)
+        result = scanner.run_scan(only="new.one")
+        self.assertFalse(result["ok"])
+        self.assertIn("Cooldown", result["error"])
+
+    def test_private_account_is_explained_and_not_fetched(self):
+        self._ig({}, private=True, followed=False, followers=180, following=90)
+        result = scanner.run_scan(only="new.one")
+        self.assertIn("private", result["targets"][0]["error"])
+        self.assertEqual(self.fetched, [])
+        self.assertIsNone(storage.latest_snapshot("new.one", "followers"))
+
+    def test_empty_list_for_a_populated_profile_is_not_saved(self):
+        self._ig({}, private=False, followers=180, following=90)
+        result = scanner.run_scan(only="new.one")
+        self.assertIn("came back empty although the profile shows", result["targets"][0]["error"])
+        self.assertIsNone(storage.latest_snapshot("new.one", "followers"))
+
+    def test_empty_list_after_a_full_one_is_not_saved(self):
+        storage.save_snapshot("new.one", "following", {"10": "a"})
+        storage.save_snapshot("new.one", "followers", {"10": "a"})
+        self._ig({})                                   # cached id: no profile counts
+        result = scanner.run_scan(only="new.one", force=True)
+        self.assertIn("the last scan had 1", result["targets"][0]["error"])
+        self.assertEqual(storage.latest_snapshot("new.one", "followers")["count"], 1)
+
+    def test_genuinely_empty_account_is_saved(self):
+        self._ig({}, private=False, followers=0, following=0)
+        result = scanner.run_scan(only="new.one")
+        self.assertTrue(result["ok"])
+        self.assertEqual(storage.latest_snapshot("new.one", "followers")["count"], 0)
+
+    def test_looked_up_id_is_remembered(self):
+        import json
+        self._ig({"10": "a"}, followers=1, following=1)
+        scanner.run_scan(only="new.one")
+        cfg = json.loads((self.tmp / "config.json").read_text(encoding="utf-8"))
+        self.assertEqual(cfg["known_ids"], {"new.one": "99"})
 
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):

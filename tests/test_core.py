@@ -710,6 +710,38 @@ class GenerateTests(unittest.TestCase):
         html = self.rh.generate().read_text(encoding="utf-8")
         self.assertIn('"targets": {}', html)
 
+
+class DuplicateLabelTests(unittest.TestCase):
+    """The self history and the same account tracked by name get distinct tabs."""
+
+    def _targets(self, config, dirs):
+        import tempfile
+
+        import report_html
+        tmp = Path(tempfile.mkdtemp())
+        for name in dirs:
+            d = tmp / "data" / name
+            d.mkdir(parents=True)
+            for kind in ("following", "followers"):
+                (d / f"{kind}_20260101_000000.json").write_text(
+                    '{"count": 1, "users": {"1": "x"}, "captured_at": "2026-01-01T00:00:00"}', encoding="utf-8")
+        (tmp / "config.json").write_text(config, encoding="utf-8")
+        real = (report_html.ROOT, report_html.DATA_DIR)
+        report_html.ROOT, report_html.DATA_DIR = tmp, tmp / "data"
+        try:
+            return report_html.collect_data()["targets"]
+        finally:
+            report_html.ROOT, report_html.DATA_DIR = real
+
+    def test_self_is_labelled_when_the_name_is_also_tracked(self):
+        targets = self._targets('{"username": "alex.rivers", "targets": ["alex.rivers"]}', ("self", "alex.rivers"))
+        self.assertEqual(targets["self"]["label"], "self")
+        self.assertNotIn("label", targets["alex.rivers"])
+
+    def test_self_alone_needs_no_label(self):
+        targets = self._targets('{"username": "alex.rivers", "targets": ["self"]}', ("self",))
+        self.assertNotIn("label", targets["self"])
+
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):
         client = igweb.IGWeb("42120983%3Ademosession%3A17")

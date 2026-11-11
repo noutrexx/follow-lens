@@ -83,6 +83,11 @@ def collect_data() -> dict:
         if name not in targets:
             targets[name] = {"display": self_username if name == "self" else name,
                              "pending": True, "tracked": True}
+    # "self" is shown under the configured username, which can also be tracked by
+    # name; tell the two tabs apart instead of showing the same label twice.
+    if "self" in targets and any(k != "self" and v["display"] == targets["self"]["display"]
+                                 for k, v in targets.items()):
+        targets["self"]["label"] = "self"
     # tracked accounts first; ones that are only history go to the end
     targets = dict(sorted(targets.items(), key=lambda kv: not kv[1].get("tracked")))
     return {"generated_at": datetime.now().strftime("%d.%m.%Y %H:%M"), "targets": targets}
@@ -231,6 +236,7 @@ tailwind.config = {
  .acct{@apply flex cursor-pointer items-center gap-2.5 rounded-lg py-1.5 pl-2 pr-3.5 text-muted transition;}
  .acct:hover{@apply text-body;background:var(--hover);}
  .acct.on{@apply text-white;background:var(--grad);}
+ .acct .tag{@apply ml-1.5 rounded border border-current px-1 font-mono text-[9px] uppercase tracking-wider opacity-70;}
  .acct.off:not(.on){@apply opacity-60;} .acct.off .nm{@apply line-through decoration-1;}
  .tact{@apply ml-auto flex-none cursor-pointer self-start whitespace-nowrap rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-[11px] text-muted transition;}
  .tact:hover{@apply border-line2 text-body;} .tact[data-act=untrack]:hover{@apply text-del;}
@@ -644,7 +650,7 @@ function venn(dispA,dispB,A,B){const both=interU(A,B),oa=A.length-both.length,ob
   +'<text class="vn" x="150" y="72" font-size="21">'+both.length+'</text><text class="vl" x="150" y="90">'+tx('shared')+'</text>'
   +'<text class="vn" x="228" y="72" font-size="17">'+ob+'</text><text class="vl" x="228" y="90">@'+dispB.slice(0,9)+'</text></svg>';
  return {svg,both};}
-function comparePanel(){const opts=Object.keys(DATA.targets).map(n=>'<option value="'+n+'">@'+(DATA.targets[n].display||n)+'</option>').join('');
+function comparePanel(){const opts=comparable().map(n=>'<option value="'+n+'">@'+(DATA.targets[n].display||n)+(DATA.targets[n].label?' ('+DATA.targets[n].label+')':'')+'</option>').join('');
  return '<div class="cmp-bar">'+ic('compare')+'<select id="cmpA" onchange="runCompare()">'+opts+'</select><span class="vs">'+tx('vs')+'</span><select id="cmpB" onchange="runCompare()">'+opts+'</select></div><div id="cmpOut"></div>';}
 function runCompare(){const a=document.getElementById('cmpA').value,b=document.getElementById('cmpB').value,out=document.getElementById('cmpOut');
  const ta=DATA.targets[a],tb=DATA.targets[b],da=ta.display||a,db=tb.display||b;
@@ -668,22 +674,28 @@ function paintChrome(){document.documentElement.lang=LANG;
  if(!lg.options.length)LANGS.forEach(([c,n])=>{const o=document.createElement('option');o.value=c;o.textContent=n;lg.appendChild(o);});
  lg.value=LANG;document.getElementById('foot').textContent=tx('footer');}
 // build: re-runnable, so a language switch can redraw every panel
+// account tabs are divs; make them behave like buttons for keyboard and screen readers
+function tab(a,n){a.tabIndex=0;a.setAttribute('role','button');a.onclick=()=>show(n);
+ a.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show(n);}};}
+// accounts with data; one still waiting for its first read has nothing to compare
+const comparable=()=>Object.keys(DATA.targets).filter(n=>!DATA.targets[n].pending);
 function build(){
  document.getElementById('accts').innerHTML='';document.getElementById('main').innerHTML='';
  const names=Object.keys(DATA.targets),accts=document.getElementById('accts'),main=document.getElementById('main');
  if(!names.length)main.innerHTML='<div class="card" style="margin-top:24px"><span class="empty">'+tx('noData')+'</span></div>';
  else{names.forEach((n,i)=>{const disp=DATA.targets[n].display||n;const a=document.createElement('div');a.className='acct'+(i?'':' on')+(DATA.targets[n].tracked===false?' off':'');a.dataset.n=n;if(DATA.targets[n].tracked===false)a.title=tx('notTracked',{n:disp});
-  a.innerHTML='<span class="am">'+ini(disp)+'</span><span class="nm">@'+disp+'</span>';a.onclick=()=>show(n);accts.appendChild(a);
+  a.innerHTML='<span class="am">'+ini(disp)+'</span><span class="nm">@'+disp+'</span>'+(DATA.targets[n].label?'<span class="tag">'+DATA.targets[n].label+'</span>':'');tab(a,n);accts.appendChild(a);
   const p=document.createElement('div');p.className='panel'+(i?'':' on');p.id='pn_'+n;p.innerHTML=panel(n);main.appendChild(p);});
-  if(names.length>=2){const ca=document.createElement('div');ca.className='acct';ca.dataset.n='__cmp__';
-   ca.innerHTML='<span class="am">'+ic('compare')+'</span><span class="nm">'+tx('compare')+'</span>';ca.onclick=()=>show('__cmp__');accts.appendChild(ca);
+  if(comparable().length>=2){const ca=document.createElement('div');ca.className='acct';ca.dataset.n='__cmp__';
+   ca.innerHTML='<span class="am">'+ic('compare')+'</span><span class="nm">'+tx('compare')+'</span>';tab(ca,'__cmp__');accts.appendChild(ca);
    const cp=document.createElement('div');cp.className='panel';cp.id='pn___cmp__';cp.innerHTML=comparePanel();main.appendChild(cp);
    document.getElementById('cmpB').selectedIndex=1;runCompare();}
   const first=document.querySelector('.panel.on');if(first){countUp(first);animDonut(first);}}
 }
 function setLang(c){if(!I18N[c])return;LANG=c;try{localStorage.setItem('fl-lang',c);}catch(e){}
  const on=document.querySelector('.acct.on'),keep=on?on.dataset.n:null;
- paintChrome();build();if(keep&&document.getElementById('pn_'+keep))show(keep);}
+ paintChrome();build();if(keep&&document.getElementById('pn_'+keep))show(keep);
+ hint(document.getElementById('gs').value);}
 paintChrome();build();
 </script></body></html>
 """

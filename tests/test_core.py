@@ -141,6 +141,11 @@ class TranslationTests(unittest.TestCase):
         for code, _ in i18n.LANGS:
             self.assertEqual(set(table[code]), set(i18n.KEYS), code)
 
+    def test_keys_are_unique(self):
+        # a repeated key silently overwrites the earlier string in every language
+        self.assertEqual(len(i18n.KEYS), len(set(i18n.KEYS)))
+        self.assertEqual(len(i18n.LANDING_KEYS), len(set(i18n.LANDING_KEYS)))
+
     def test_no_translation_is_empty(self):
         for code, strings in i18n.table().items():
             for key, text in strings.items():

@@ -572,7 +572,7 @@ function addAccount(n){const g=document.getElementById('gs');g.disabled=true;
 function untrack(n){if(!confirm(tx('confirmRemove',{n})))return;
  fetch('/targets/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:n})})
  .then(r=>r.json()).then(j=>{if(!j.ok){toast(j.error,7000);return;}
-  toast(tx('removed',{n:j.target}));setTimeout(()=>location.reload(),700);})
+  toast(tx('untracked',{n:j.target}));setTimeout(()=>location.reload(),700);})
  .catch(()=>toast(tx('noServer')));}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b)return;
  if(b.dataset.act==='untrack')untrack(b.dataset.n);else if(b.dataset.act==='track')addAccount(b.dataset.n);});

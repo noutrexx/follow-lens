@@ -14,7 +14,7 @@ KEYS = [
     "noChanges", "noData", "none", "pickTwo", "noSharedF", "noSharedG",
     "sharedFollowers", "sharedFollowing", "followBoth", "bothFollow", "shared",
     "sort", "newest", "az", "show", "exported",
-    "recipSelfA", "recipSelfB", "recipOtherA", "recipOtherB", "footer", "noServer", "scanNothing", "older", "nReturned", "addHint", "adding", "addedLater", "alreadyTracked", "pending", "stopTracking", "trackAgain", "notTracked", "confirmRemove", "removed",
+    "recipSelfA", "recipSelfB", "recipOtherA", "recipOtherB", "footer", "noServer", "scanNothing", "older", "nReturned", "addHint", "adding", "addedLater", "alreadyTracked", "pending", "stopTracking", "trackAgain", "notTracked", "confirmRemove", "untracked",
 ]
 
 T = {

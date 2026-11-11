@@ -239,6 +239,8 @@ If the same accounts keep leaving and coming back between scans, that is the lis
 
 ## Privacy and safety
 
+> **Read the [usage guide](docs/USAGE.md) before scanning regularly** ([Türkçe](docs/KULLANIM.md)). It covers how many requests a scan sends, how they are paced, what Instagram may do in response, and what to do when it does.
+
 - **Local only.** Snapshots and your session cookie live in `data/` and `config.json`, both git-ignored. Nothing is uploaded.
 - **No password.** Authentication uses a session cookie you copy yourself.
 - **Conservative scanning.** Randomised delays, a scan cooldown and backoff on rate limits keep request volume low.
@@ -265,6 +267,7 @@ follow-lens/
 ├─ frontend/
 │  ├─ landing.html        #   landing page
 │  └─ og.svg              #   social preview image
+├─ docs/                  # usage guide: request volume, pacing and account risk
 ├─ tests/                 # unit tests for diffing, pagination, sessions and translations
 ├─ assets/                # images used in this README
 ├─ config.example.json    # sample config, copy to config.json

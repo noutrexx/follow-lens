@@ -666,6 +666,50 @@ class TrackedFlagTests(unittest.TestCase):
         self.assertTrue(targets["zzz.live"]["tracked"])
         self.assertFalse(targets["aaa.old"]["tracked"])
 
+
+class GenerateTests(unittest.TestCase):
+    """The generated page is complete and cannot be broken by its own data."""
+
+    def setUp(self):
+        import tempfile
+
+        import report_html
+        self.rh = report_html
+        self.tmp = Path(tempfile.mkdtemp())
+        (self.tmp / "frontend").mkdir()
+        self.saved = (report_html.ROOT, report_html.DATA_DIR, report_html.OUT)
+        report_html.ROOT, report_html.DATA_DIR = self.tmp, self.tmp / "data"
+        report_html.OUT = self.tmp / "frontend" / "viewer.html"
+
+    def tearDown(self):
+        self.rh.ROOT, self.rh.DATA_DIR, self.rh.OUT = self.saved
+
+    def _snapshot(self, name, users):
+        import json
+        d = self.tmp / "data" / name
+        d.mkdir(parents=True, exist_ok=True)
+        for kind in ("following", "followers"):
+            (d / f"{kind}_20260101_000000.json").write_text(json.dumps(
+                {"count": len(users), "users": users, "captured_at": "2026-01-01T00:00:00"}), encoding="utf-8")
+
+    def test_every_placeholder_is_filled(self):
+        self._snapshot("alex.rivers", {"1": "studio.lumen"})
+        html = self.rh.generate().read_text(encoding="utf-8")
+        for placeholder in ("__DATA__", "__I18N__", "__LANGS__", "__GEN__"):
+            self.assertNotIn(placeholder, html)
+        self.assertIn("alex.rivers", html)
+        self.assertEqual(list((self.tmp / "frontend").glob("*.tmp")), [])
+
+    def test_data_cannot_close_the_script_element(self):
+        self._snapshot("alex.rivers", {"1": "</script><script>alert(1)</script>"})
+        html = self.rh.generate().read_text(encoding="utf-8")
+        self.assertNotIn("</script><script>alert(1)", html)
+        self.assertIn("<\\/script>", html)
+
+    def test_generates_with_no_data_at_all(self):
+        html = self.rh.generate().read_text(encoding="utf-8")
+        self.assertIn('"targets": {}', html)
+
 class SessionParsingTests(unittest.TestCase):
     def test_self_id_extracted_from_sessionid(self):
         client = igweb.IGWeb("42120983%3Ademosession%3A17")

@@ -689,12 +689,18 @@ paintChrome();build();
 """
 
 
+def _embed(value) -> str:
+    """JSON for inlining in a <script>. "</" is escaped so no string in the data,
+    a username or a folder name, can close the script element early."""
+    return json.dumps(value, ensure_ascii=False).replace("</", "<\\/")
+
+
 def generate() -> Path:
     data = collect_data()
     html = (TPL.replace("__GEN__", data["generated_at"])
-            .replace("__I18N__", json.dumps(i18n.table(), ensure_ascii=False))
-            .replace("__LANGS__", json.dumps(i18n.LANGS, ensure_ascii=False))
-            .replace("__DATA__", json.dumps(data, ensure_ascii=False)))
+            .replace("__I18N__", _embed(i18n.table()))
+            .replace("__LANGS__", _embed(i18n.LANGS))
+            .replace("__DATA__", _embed(data)))
     tmp = OUT.with_name(OUT.name + ".tmp")
     tmp.write_text(html, encoding="utf-8")
     os.replace(tmp, OUT)

@@ -240,6 +240,8 @@ tailwind.config = {
  .acct.off:not(.on){@apply opacity-60;} .acct.off .nm{@apply line-through decoration-1;}
  .tact{@apply ml-auto flex-none cursor-pointer self-start whitespace-nowrap rounded-md border border-line bg-surface px-2.5 py-1 font-mono text-[11px] text-muted transition;}
  .tact:hover{@apply border-line2 text-body;} .tact[data-act=untrack]:hover{@apply text-del;}
+ /* on a phone the button drops under the name instead of squeezing it */
+ @media(max-width:760px){.pf-top{@apply flex-wrap;} .b-prof .tact{@apply ml-0;}}
  .trk{@apply flex flex-wrap items-center gap-3;} .trk.off{@apply mb-3 mt-4;}
  .am{@apply flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-bold uppercase;background:var(--av-chip);}
  .acct.on .am{@apply bg-white/25;} .acct .nm{@apply text-[13px] font-semibold;}

@@ -255,7 +255,11 @@ tailwind.config = {
  .scan{@apply mb-3 overflow-hidden rounded-md border border-line bg-surface;}
  .scan-h{@apply flex items-center gap-2.5 border-b border-line px-3.5 py-2.5 text-[12px] text-faint;}
  .scan-h .lights i{@apply h-[9px] w-[9px];}
- .scan-n{@apply ml-auto;} .scan-n b{@apply font-bold;}
+ .scan-n{@apply ml-auto flex gap-2;} .scan-n b{@apply font-bold;} .scan-n .noise{@apply font-normal text-faint;}
+ .scan.quiet .lights{@apply opacity-30;} .scan.quiet{@apply border-dashed;}
+ /* what the five row kinds mean, once, above the feed */
+ .legend{@apply mb-4 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11px] text-faint;}
+ .legend i{@apply mr-1 font-bold not-italic;} .legend s{@apply decoration-1;}
  .rows{@apply flex flex-col;}
  /* the four counters as one divided strip */
  .strip{@apply grid overflow-hidden rounded-md border border-line;grid-template-columns:repeat(4,minmax(0,1fr));}
@@ -474,18 +478,20 @@ function timeline(d,kind,gone){const undo=undone(d),back=returned(d),items=d.his
  if(!items.length)return '<div class="card"><span class="empty">'+tx('noChanges')+'</span></div>';
  const L=kind==='followers'?{a:tx('nNewFollower'),r:tx('nUnfollowed')}:{a:tx('nNowFollowing'),r:tx('nStopped')};
  const pane=h=>{
+  const rows=[];let a=0,r=0,n=0;
+  h.added.forEach(u=>{if(back.has(h.at+'|'+u)){n++;rows.push(row(u,'ret',tx('nReturned')));}else{a++;rows.push(row(u,'add',L.a));}});
+  h.removed.forEach(u=>{const key=h.at+'|'+u;
+   if(gone&&gone.has(key)){n++;rows.push(row(u,'gone',tx('nGone')));}
+   else if(undo.has(key)){n++;rows.push(row(u,'back',tx('nBack')));}
+   else{r++;rows.push(row(u,'rem',L.r));}});
+  // the tally counts what really happened; rows that are only list churn go under "~"
+  // and a pane with nothing else steps back so real activity stands out
   const has=((h.added.length?'new ':'')+(h.removed.length?'rem':'')).trim();
-  let s='<div class="scan" data-has="'+has+'"><div class="scan-h">'
+  return '<div class="scan'+(a||r?'':' quiet')+'" data-has="'+has+'"><div class="scan-h">'
    +'<span class="lights"><i></i><i></i><i></i></span>'
    +'<span class="scan-t">'+tx('scan')+' &middot; '+(h.at||'').replace('T',' ')+'</span><span class="scan-n">'
-   +(h.added.length?'<b class="up">+'+h.added.length+'</b>':'')
-   +(h.removed.length?' <b class="down">-'+h.removed.length+'</b>':'')+'</span></div><div class="rows">';
-  h.added.forEach(u=>{s+=back.has(h.at+'|'+u)?row(u,'ret',tx('nReturned')):row(u,'add',L.a);});
-  h.removed.forEach(u=>{const key=h.at+'|'+u;
-   if(gone&&gone.has(key))s+=row(u,'gone',tx('nGone'));
-   else if(undo.has(key))s+=row(u,'back',tx('nBack'));
-   else s+=row(u,'rem',L.r);});
-  return s+'</div></div>';};
+   +(a?'<b class="up">+'+a+'</b>':'')+(r?'<b class="down">-'+r+'</b>':'')+(n?'<b class="noise">~'+n+'</b>':'')
+   +'</span></div><div class="rows">'+rows.join('')+'</div></div>';};
  // The latest scans stay open; older ones fold away instead of disappearing.
  const SHOWN=12,rest=items.slice(SHOWN);
  return items.slice(0,SHOWN).map(pane).join('')
@@ -529,6 +535,10 @@ function panel(name){const t=DATA.targets[name],s=t.stats||{},disp=t.display||na
  // recent changes with filters
  h+='<div class="sec"><div class="sec-h">'+ic('trend')+'<div class="sec-t">'+tx('recent')+'</div>'
    +'<div class="filters" data-host="'+name+'"><button class="on" onclick="filt(this,\''+name+'\',\'all\')">'+tx('all')+'</button><button onclick="filt(this,\''+name+'\',\'new\')">'+tx('new')+'</button><button onclick="filt(this,\''+name+'\',\'rem\')">'+tx('removed')+'</button></div></div>';
+ h+='<div class="legend">'
+  +'<span><i class="up">+</i>'+tx('new')+'</span><span><i>+</i>'+tx('nReturned')+'</span>'
+  +'<span><i class="down">-</i>'+tx('removed')+'</span><span><i>-</i><s>'+tx('nBack')+'</s></span>'
+  +'<span><i>~</i>'+tx('nGone')+'</span></div>';
  h+='<div id="tl_'+name+'">';
  const gone=vanished(t);
  if(t.following){h+='<div class="ml">'+tx('inFollowing')+'</div>'+timeline(t.following,'following',gone);}
@@ -596,7 +606,7 @@ function countUp(panel){panel.querySelectorAll('.num[data-v]').forEach(el=>{cons
  (function step(t){const p=Math.min(1,(t-t0)/750),e=1-Math.pow(1-p,3);el.textContent=nf(Math.round(tgt*e));if(p<1)requestAnimationFrame(step);})(performance.now());});}
 function animDonut(panel){panel.querySelectorAll('.d-fg').forEach(c=>{requestAnimationFrame(()=>{c.style.strokeDashoffset=c.dataset.off;});});}
 function filt(btn,name,mode){btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');
- document.querySelectorAll('#tl_'+name+' [data-has]').forEach(c=>{const h=c.dataset.has||'';c.classList.toggle('hidden',mode!=='all'&&!h.includes(mode));});}
+ document.getElementById('tl_'+name).querySelectorAll('[data-has]').forEach(c=>{const h=c.dataset.has||'';c.classList.toggle('hidden',mode!=='all'&&!h.includes(mode));});}
 function gsearch(q){q=q.trim().toLowerCase();const p=document.querySelector('.panel.on');if(!p)return;
  // open every fold while searching, and put each back the way it was afterwards
  if(q)p.querySelectorAll('details').forEach(d=>{if(!('was' in d.dataset))d.dataset.was=d.open?'1':'';d.open=true;});
@@ -627,7 +637,7 @@ function scan(){const b=document.getElementById('rf'),t=b.querySelector('.t');
   }else{toast(j.error||why||tx('scanNothing'),9000);reset();}})
  .catch(()=>{toast(tx('noServer'));reset();});}
 function toast(x,ms){let e=document.getElementById('tt');if(!e){e=document.createElement('div');e.id='tt';
- e.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:rgba(20,20,27,.94);backdrop-filter:blur(10px);border:1px solid var(--line2);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;white-space:pre-line;width:max-content;max-width:min(92vw,640px);z-index:60;box-shadow:0 12px 40px rgba(0,0,0,.55);transition:.3s';document.body.appendChild(e);}
+ e.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:var(--bar-bg);backdrop-filter:blur(14px);border:1px solid var(--line2);color:var(--text);font-family:inherit;padding:11px 18px;border-radius:10px;font-size:13px;white-space:pre-line;width:max-content;max-width:min(92vw,640px);z-index:60;box-shadow:0 12px 40px rgba(0,0,0,.28);transition:.3s';document.body.appendChild(e);}
  e.textContent=x;e.style.opacity='1';clearTimeout(e._t);e._t=setTimeout(()=>e.style.opacity='0',ms||4200);}
 function show(name){document.querySelectorAll('.acct').forEach(x=>x.classList.toggle('on',x.dataset.n===name));
  document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));const p=document.getElementById('pn_'+name);p.classList.add('on');
